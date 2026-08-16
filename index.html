@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#d9252a" />
+    <meta name="description" content="Drogarias Pietrão — Medicamentos, cuidados diários e bem-estar com entrega rápida." />
+    <title>Drogarias Pietrão | Farmácia e Cuidados para a sua Saúde</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- ==================== VITRINE / STOREFRONT ==================== -->
+    <div id="storefront">
+      <!-- Barra Superior Institucional -->
+      <div class="notice-bar">
+        <span id="store-notice-display">Compre com segurança • Entrega rápida e garantida</span>
+        <span class="store-hours" id="store-hours" aria-live="polite"></span>
+      </div>
+
+      <!-- Cabeçalho Principal -->
+      <header class="site-header">
+        <div class="header-main">
+          <a class="brand logo-brand" href="#inicio" aria-label="Drogarias Pietrão">
+            <img src="LOGO PIETRAO.jfif" alt="Drogarias Pietrão" />
+            <span>Drogarias <strong>Pietrão</strong></span>
+          </a>
+
+          <button class="location-button" id="open-cep-btn" type="button" aria-label="Informar CEP">
+            <span class="btn-icon">⌖</span>
+            <div class="btn-text">
+              <small id="cep-label-small">Onde você está?</small>
+              <strong id="cep-label-strong">Informe seu CEP</strong>
+            </div>
+          </button>
+
+          <form class="header-search" id="header-search-form" onsubmit="handleHeaderSearch(event)" role="search">
+            <button type="submit" class="search-btn-icon" aria-label="Buscar produtos">⌕</button>
+            <input id="search" type="search" placeholder="Busque por medicamentos, dermocosméticos, marcas..." autocomplete="off" />
+            <button type="button" id="search-clear-btn" class="search-clear-btn" aria-label="Limpar busca" style="display: none;">×</button>
+          </form>
+
+          <button class="account-button" id="open-account" type="button" aria-label="Acessar conta">
+            <span class="btn-icon">♙</span>
+            <div class="btn-text">
+              <small id="account-greeting">Olá, visitante</small>
+              <strong id="account-label">Entre ou cadastre-se</strong>
+            </div>
+          </button>
+
+          <button class="cart-button" id="open-cart" type="button" aria-label="Abrir cesta de compras">
+            <span class="cart-icon">🛒</span>
+            <span id="cart-count" class="cart-badge">0</span>
+            <b class="cart-label">Cesta</b>
+          </button>
+        </div>
+
+        <!-- Barra de Navegação por Categorias -->
+        <nav class="main-nav" id="main-categories-nav" aria-label="Categorias da Loja">
+          <a href="#produtos" class="all-categories" onclick="setCategory('Todos')">☰ Todas as categorias</a>
+          <a href="#produtos" onclick="setCategory('Medicamentos')">Medicamentos</a>
+          <a href="#produtos" onclick="setCategory('Higiene e beleza')">Higiene e beleza</a>
+          <a href="#produtos" onclick="setCategory('Dermocosméticos')">Dermocosméticos</a>
+          <a href="#produtos" onclick="setCategory('Vitaminas e Suplementos')">Vitaminas</a>
+          <a href="#produtos" onclick="setCategory('Mundo infantil')">Mundo infantil</a>
+          <a href="#produtos" onclick="setCategory('Primeiros socorros')">Primeiros socorros</a>
+          <a href="#promocoes" class="offers-link">Ofertas em Destaque</a>
+        </nav>
+      </header>
+
+      <!-- Conteúdo da Página Inicial -->
+      <main id="inicio">
+        <!-- Hero Banner Principal -->
+        <section class="hero">
+          <div class="hero-copy">
+            <span class="eyebrow">CUIDADO QUE CHEGA ATÉ VOCÊ</span>
+            <h1>Saúde e economia para todos os dias.</h1>
+            <p>Encontre os melhores medicamentos, produtos de higiene e dermocosméticos com a segurança e rapidez que você precisa.</p>
+            <div class="hero-actions">
+              <a href="#promocoes" class="primary-button">Conferir ofertas <span>→</span></a>
+              <a href="#produtos" class="secondary-button">Ver catálogo completo</a>
+            </div>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="hero-disc"></div>
+            <div class="hero-bag">
+              <span class="cross">+</span>
+              <strong>PIETRÃO</strong>
+              <small>cuidar faz bem</small>
+            </div>
+            <div class="hero-pill pill-one"></div>
+            <div class="hero-pill pill-two"></div>
+          </div>
+        </section>
+
+        <!-- Faixa de Benefícios Institucionais -->
+        <section class="benefit-strip" aria-label="Vantagens de comprar na Drogarias Pietrão">
+          <article>
+            <span class="benefit-icon">▣</span>
+            <div>
+              <strong>Entrega rápida</strong>
+              <small id="benefit-delivery-text">Consulte a sua região</small>
+            </div>
+          </article>
+          <article>
+            <span class="benefit-icon">⌂</span>
+            <div>
+              <strong>Retire na loja</strong>
+              <small>Mais praticidade no balcão</small>
+            </div>
+          </article>
+          <article>
+            <span class="benefit-icon">▤</span>
+            <div>
+              <strong>Compre com segurança</strong>
+              <small>Atendimento direto e seguro</small>
+            </div>
+          </article>
+          <article>
+            <span class="benefit-icon">✦</span>
+            <div>
+              <strong>Ofertas diárias</strong>
+              <small>Preços baixos todo dia</small>
+            </div>
+          </article>
+        </section>
+
+        <!-- Grade de Categorias -->
+        <section class="section categories-section">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">ENCONTRE O QUE PRECISA</span>
+              <h2>Compre por departamento</h2>
+            </div>
+            <a href="#produtos" onclick="setCategory('Todos')">Ver todos os produtos →</a>
+          </div>
+          <div class="category-cards" id="featured-categories-grid">
+            <!-- Renderizado dinamicamente via JS com ícones limpos -->
+          </div>
+        </section>
+
+        <!-- Seção de Ofertas em Destaque -->
+        <section class="section promo-section" id="promocoes">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">PREÇOS ESPECIAIS</span>
+              <h2>Ofertas em destaque</h2>
+            </div>
+            <a href="#produtos">Ver mais ofertas →</a>
+          </div>
+          <div class="products-row" id="promo-list"></div>
+        </section>
+
+        <!-- Seção Catálogo Geral -->
+        <section class="section catalog-section" id="produtos">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">VITRINE PIETRÃO</span>
+              <h2>Produtos para o seu cuidado</h2>
+            </div>
+          </div>
+
+          <!-- Filtros de Categoria em Botões -->
+          <div class="filters" id="category-filters"></div>
+
+          <!-- Barra de Informações do Catálogo -->
+          <div class="toolbar">
+            <p id="product-count">Carregando produtos...</p>
+            <span class="result-note">Preços e estoque sujeitos à disponibilidade no fechamento.</span>
+          </div>
+
+          <!-- Grade de Produtos -->
+          <div class="product-grid" id="product-list"></div>
+        </section>
+      </main>
+
+      <!-- Rodapé Institucional -->
+      <footer>
+        <div class="footer-grid">
+          <div>
+            <div class="brand logo-brand footer-logo">
+              <img src="LOGO PIETRAO.jfif" alt="Drogarias Pietrão" />
+              <span>Drogarias <strong>Pietrão</strong></span>
+            </div>
+            <p>Sua drogaria de confiança, prestando serviços de excelência em saúde, bem-estar e atendimento farmacêutico.</p>
+          </div>
+          <div>
+            <h3>Institucional</h3>
+            <a href="#inicio">Quem somos</a>
+            <a href="#inicio">Nossas unidades</a>
+            <a href="#inicio">Trabalhe conosco</a>
+          </div>
+          <div>
+            <h3>Atendimento</h3>
+            <a href="#inicio">Prazos de entrega</a>
+            <a href="#inicio">Formas de pagamento</a>
+            <a href="#inicio">Política de privacidade</a>
+          </div>
+          <div>
+            <h3>Fale Conosco</h3>
+            <p>Atendimento direto com nossa equipe pelo canal oficial de WhatsApp.</p>
+            <button class="whatsapp-direct-btn" type="button" onclick="openDirectWhatsApp()">Atendimento WhatsApp</button>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 Drogarias Pietrão. Todos os direitos reservados.</span>
+          <button id="admin-link" class="admin-link" type="button">Acesso Administrativo</button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ==================== GAVETA DO CARRINHO ==================== -->
+    <aside class="cart-drawer" id="cart-drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <h2>Sua cesta</h2>
+        <button class="icon-button close-cart" aria-label="Fechar cesta">×</button>
+      </div>
+
+      <!-- Barra Profissional de Frete Grátis -->
+      <div class="free-shipping-card" id="free-shipping-container">
+        <div class="free-shipping-header">
+          <p id="free-shipping-msg">Frete grátis em compras a partir de R$ 20,00</p>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="free-shipping-progress" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Lista de Itens -->
+      <div id="cart-items" class="cart-items"></div>
+
+      <!-- Rodapé do Carrinho com Discriminação -->
+      <div class="cart-bottom">
+        <div class="summary-lines">
+          <div class="summary-line">
+            <span>Subtotal</span>
+            <span id="cart-subtotal">R$ 0,00</span>
+          </div>
+          <div class="summary-line">
+            <span>Taxa de entrega</span>
+            <span id="cart-delivery-fee">R$ 0,00</span>
+          </div>
+          <div class="total-line">
+            <span>Total</span>
+            <strong id="cart-total">R$ 0,00</strong>
+          </div>
+        </div>
+        <button id="checkout" class="primary-button wide" type="button">
+          Finalizar pedido <span>→</span>
+        </button>
+      </div>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ==================== MODAL DE CHECKOUT ==================== -->
+    <dialog id="checkout-modal" class="modal">
+      <form id="checkout-form">
+        <button type="button" class="modal-close" data-close="checkout-modal">×</button>
+        <span class="eyebrow">FINALIZAÇÃO DO PEDIDO</span>
+        <h2>Endereço de Entrega</h2>
+        <p>Preencha as informações para a entrega do seu pedido.</p>
+
+        <!-- Indicador de endereço salvo -->
+        <div id="saved-address-alert" class="saved-address-pill" hidden>
+          <span>Endereço salvo preenchido automaticamente</span>
+          <button type="button" class="clear-address-link" onclick="clearSavedAddressForm()">Alterar</button>
+        </div>
+        
+        <div class="address-grid">
+          <label class="address-street">
+            Rua ou Avenida
+            <input required id="address-street" autocomplete="street-address" placeholder="Ex.: Av. Brasil" />
+          </label>
+          <label>
+            Número
+            <input required id="address-number" inputmode="numeric" placeholder="Ex.: 123" />
+          </label>
+          <label>
+            Bairro
+            <input required id="address-district" autocomplete="address-level2" placeholder="Ex.: Centro" />
+          </label>
+          <label class="address-reference">
+            Complemento ou Ponto de Referência
+            <input id="address-reference" placeholder="Ex.: Apto 201, próximo à praça" />
+          </label>
+        </div>
+
+        <!-- Opção para salvar o endereço para futuros pedidos -->
+        <label class="checkbox-label save-address-label">
+          <input id="save-address-checkbox" type="checkbox" checked />
+          <span>Salvar este endereço para futuros pedidos neste dispositivo</span>
+        </label>
+
+        <label>
+          Forma de Pagamento
+          <select id="payment" required>
+            <option value="Pix">Pix (Chave informada no atendimento)</option>
+            <option value="Cartão de Crédito na entrega">Cartão de Crédito na entrega</option>
+            <option value="Cartão de Débito na entrega">Cartão de Débito na entrega</option>
+            <option value="Dinheiro">Dinheiro</option>
+          </select>
+        </label>
+
+        <label>
+          Observações adicionais (opcional)
+          <input id="order-notes" placeholder="Ex.: Troco para R$ 50,00 / Chamar no interfone" />
+        </label>
+
+        <!-- Resumo Financeiro no Checkout -->
+        <div class="checkout-summary-box">
+          <div class="checkout-summary-row">
+            <span>Subtotal dos produtos:</span>
+            <strong id="checkout-subtotal">R$ 0,00</strong>
+          </div>
+          <div class="checkout-summary-row">
+            <span>Taxa de entrega:</span>
+            <strong id="checkout-delivery-fee">R$ 0,00</strong>
+          </div>
+          <div class="checkout-summary-row checkout-total-row">
+            <span>Total a pagar:</span>
+            <strong id="checkout-total">R$ 0,00</strong>
+          </div>
+        </div>
+
+        <button class="primary-button wide" type="submit">Enviar pedido para o WhatsApp</button>
+      </form>
+    </dialog>
+
+    <!-- ==================== MODAL DE CEP / LOCALIZAÇÃO ==================== -->
+    <dialog id="cep-modal" class="modal">
+      <div class="account-panel">
+        <button type="button" class="modal-close" data-close="cep-modal">×</button>
+        <span class="eyebrow">LOCALIZAÇÃO</span>
+        <h2>Consultar Entrega</h2>
+        <p>Informe seu CEP ou bairro para verificar a estimativa de entrega na sua região.</p>
+        <form id="cep-form" onsubmit="handleCepSubmit(event)">
+          <label>
+            CEP ou Bairro
+            <input id="input-cep" type="text" placeholder="Ex.: 69000-000 ou Centro" required />
+          </label>
+          <button class="primary-button wide" type="submit">Consultar</button>
+        </form>
+        <div id="cep-result" class="cep-result-box" hidden>
+          <p><strong>Região atendida com entrega expressa</strong></p>
+          <p class="cep-time" id="cep-time-display">Prazo estimado: 30 a 60 minutos</p>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- ==================== MODAL DE CONTA DO CLIENTE ==================== -->
+    <dialog id="account-modal" class="modal account-modal">
+      <div class="account-panel">
+        <button type="button" class="modal-close" data-close="account-modal">×</button>
+        <span class="eyebrow">MINHA CONTA</span>
+        <h2 id="account-modal-title">Entre na sua conta</h2>
+        <p id="account-modal-text">Acesse ou crie seu cadastro neste dispositivo.</p>
+        
+        <!-- Formulário de Login do Cliente -->
+        <form id="customer-login-form">
+          <label>
+            E-mail
+            <input id="customer-email" type="email" autocomplete="email" required placeholder="seuemail@exemplo.com" />
+          </label>
+          <label>
+            Senha
+            <div class="password-wrapper">
+              <input id="customer-password" type="password" autocomplete="current-password" required minlength="4" placeholder="Sua senha" />
+              <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('customer-password', this)" aria-label="Mostrar senha">
+                <span class="eye-icon">👁</span>
+              </button>
+            </div>
+          </label>
+          <p class="login-error" id="customer-login-error"></p>
+          <button class="primary-button wide" type="submit">Entrar</button>
+          <button class="text-button" id="show-register" type="button">Ainda não tenho cadastro</button>
+        </form>
+
+        <!-- Formulário de Cadastro do Cliente -->
+        <form id="customer-register-form" hidden>
+          <label>
+            Nome completo
+            <input id="customer-name" autocomplete="name" required placeholder="Como podemos chamar você?" />
+          </label>
+          <label>
+            E-mail
+            <input id="customer-register-email" type="email" autocomplete="email" required placeholder="seuemail@exemplo.com" />
+          </label>
+          <label>
+            Telefone para contato
+            <input id="customer-register-phone" type="tel" placeholder="(00) 00000-0000" />
+          </label>
+          <label>
+            Crie uma senha
+            <div class="password-wrapper">
+              <input id="customer-register-password" type="password" autocomplete="new-password" required minlength="4" placeholder="Mínimo de 4 caracteres" />
+              <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('customer-register-password', this)" aria-label="Mostrar senha">
+                <span class="eye-icon">👁</span>
+              </button>
+            </div>
+          </label>
+          <p class="login-error" id="customer-register-error"></p>
+          <button class="primary-button wide" type="submit">Criar cadastro</button>
+          <button class="text-button" id="show-login" type="button">Já tenho cadastro</button>
+        </form>
+
+        <!-- Visão de Conta Conectada -->
+        <div id="customer-account-view" hidden>
+          <p class="account-welcome">Você está conectado como <strong id="customer-name-display"></strong>.</p>
+          <div class="customer-info-box">
+            <p>E-mail: <span id="customer-email-display"></span></p>
+          </div>
+
+          <!-- Gerenciador de Endereço Salvo -->
+          <div class="customer-saved-address-section">
+            <h3>Endereço de Entrega Cadastrado</h3>
+            <div id="customer-address-details" class="saved-address-card">
+              <p id="customer-address-text">Nenhum endereço salvo no momento.</p>
+              <button class="text-button" type="button" onclick="editAccountAddress()">Atualizar endereço</button>
+            </div>
+            <form id="customer-address-form" hidden onsubmit="handleCustomerAddressSave(event)">
+              <div class="address-grid">
+                <label class="address-street">
+                  Rua ou Avenida
+                  <input required id="acc-address-street" placeholder="Ex.: Av. Brasil" />
+                </label>
+                <label>
+                  Número
+                  <input required id="acc-address-number" placeholder="Ex.: 123" />
+                </label>
+                <label>
+                  Bairro
+                  <input required id="acc-address-district" placeholder="Ex.: Centro" />
+                </label>
+                <label class="address-reference">
+                  Complemento / Referência
+                  <input id="acc-address-reference" placeholder="Ex.: Apto 101" />
+                </label>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button class="primary-button" style="padding: 8px 16px;" type="submit">Salvar Endereço</button>
+                <button class="secondary-button" style="padding: 8px 16px;" type="button" onclick="cancelAccountAddressEdit()">Cancelar</button>
+              </div>
+            </form>
+          </div>
+
+          <button id="customer-logout" class="primary-button wide" style="margin-top: 20px;" type="button">Sair desta conta</button>
+        </div>
+
+        <p class="local-account-note">Seus dados e endereços ficam salvos localmente neste navegador.</p>
+      </div>
+    </dialog>
+
+    <!-- ==================== ÁREA ADMINISTRATIVA ==================== -->
+    <section id="admin-area" hidden>
+      <!-- Tela de Login do Admin -->
+      <div class="login-screen" id="login-screen">
+        <form id="login-form" class="login-card">
+          <div class="medical-mark">✚</div>
+          <span class="eyebrow">PAINEL DO GERENTE</span>
+          <h1>Acesso Administrativo</h1>
+          <p>Entre com seu e-mail e senha de administrador para gerenciar produtos, preços, estoque e pedidos.</p>
+          
+          <label>
+            E-mail Administrativo
+            <input id="login-user" type="email" required autocomplete="email" placeholder="admin@pietrao.com" />
+          </label>
+          
+          <label>
+            Senha
+            <div class="password-wrapper">
+              <input id="login-password" required type="password" autocomplete="current-password" placeholder="••••••••" />
+              <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('login-password', this)" aria-label="Mostrar senha">
+                <span class="eye-icon">👁</span>
+              </button>
+            </div>
+          </label>
+          
+          <p class="login-error" id="login-error"></p>
+          
+          <button class="primary-button wide" type="submit">Entrar no Painel</button>
+          <button type="button" class="text-button back-store">← Voltar para a vitrine</button>
+        </form>
+      </div>
+
+      <!-- Dashboard Administrativo -->
+      <div id="dashboard" hidden>
+        <!-- Cabeçalho do Painel Admin -->
+        <header class="admin-header">
+          <div class="admin-header-brand">
+            <a class="brand logo-brand" href="#">
+              <img src="LOGO PIETRAO.jfif" alt="Drogarias Pietrão" />
+              <span>Drogarias <strong>Pietrão</strong><small class="admin-badge">GERÊNCIA</small></span>
+            </a>
+          </div>
+
+          <nav class="admin-nav" aria-label="Navegação do Painel">
+            <button class="admin-tab active" data-admin-view="catalog">
+              Catálogo e Preços
+            </button>
+            <button class="admin-tab" data-admin-view="stock-alerts">
+              Estoque em Atenção <span class="tab-badge" id="stock-alert-badge">0</span>
+            </button>
+            <button class="admin-tab" data-admin-view="sales">
+              Pedidos e Vendas
+            </button>
+            <button class="admin-tab" data-admin-view="settings">
+              Configurações da Loja
+            </button>
+          </nav>
+
+          <div class="admin-user-actions">
+            <button class="view-store-btn back-store" type="button">Ver vitrine ↗</button>
+            <button id="logout" class="logout" type="button">Sair</button>
+          </div>
+        </header>
+
+        <!-- Corpo Principal do Admin -->
+        <main class="admin-main">
+          <!-- ABA 1: GESTÃO DE CATÁLOGO & PREÇOS -->
+          <section id="catalog-view" class="admin-view-panel">
+            <div class="admin-title">
+              <div>
+                <span class="eyebrow">GESTÃO DE CATÁLOGO</span>
+                <h1>Catálogo de Produtos</h1>
+                <p>Cadastre novos itens, altere preços regulares e promocionais, fotos e quantidades de estoque.</p>
+              </div>
+              <button id="new-product" class="primary-button" type="button">+ Novo Produto</button>
+            </div>
+
+            <!-- Cards de Estatísticas do Catálogo -->
+            <div class="admin-stats">
+              <article class="stat-card">
+                <div class="stat-icon">▣</div>
+                <div>
+                  <span>Produtos cadastrados</span>
+                  <strong id="stat-products">0</strong>
+                </div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon">✦</div>
+                <div>
+                  <span>Promoções ativas</span>
+                  <strong id="stat-promos">0</strong>
+                </div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon">▤</div>
+                <div>
+                  <span>Total em estoque</span>
+                  <strong id="stat-stock">0 un.</strong>
+                </div>
+              </article>
+              <article class="stat-card warning-stat">
+                <div class="stat-icon">▲</div>
+                <div>
+                  <span>Estoque baixo / esgotado</span>
+                  <strong id="stat-low-stock">0</strong>
+                </div>
+              </article>
+            </div>
+
+            <!-- Tabela de Produtos -->
+            <div class="table-card">
+              <div class="table-head">
+                <h2>Lista Geral de Produtos</h2>
+                <div class="table-filters-row">
+                  <select id="admin-category-filter">
+                    <option value="all">Todas as categorias</option>
+                  </select>
+                  <select id="admin-stock-filter">
+                    <option value="all">Todos os estoques</option>
+                    <option value="in-stock">Em estoque (> 5)</option>
+                    <option value="low-stock">Estoque baixo (1 a 5)</option>
+                    <option value="out-of-stock">Esgotados (0)</option>
+                  </select>
+                  <input id="admin-search" type="search" placeholder="Buscar por produto..." />
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Foto</th>
+                      <th>Produto</th>
+                      <th>Categoria</th>
+                      <th>Preço Normal</th>
+                      <th>Preço Promo</th>
+                      <th>Estoque (Admin)</th>
+                      <th>Status Vitrine</th>
+                      <th class="text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-product-list">
+                    <!-- Preenchido via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ABA 2: ESTOQUE EM ATENÇÃO (INTERATIVO) -->
+          <section id="stock-alerts-view" class="admin-view-panel" hidden>
+            <div class="admin-title">
+              <div>
+                <span class="eyebrow">MONITORAMENTO DE REPOSIÇÃO</span>
+                <h1>Produtos em Atenção</h1>
+                <p>Produtos com estoque zerado ou em nível crítico para reposição imediata.</p>
+              </div>
+            </div>
+
+            <div class="stock-alerts-container" id="stock-alerts-container">
+              <!-- Renderizado interativamente via JS -->
+            </div>
+          </section>
+
+          <!-- ABA 3: PEDIDOS & VENDAS -->
+          <section id="sales-view" class="admin-view-panel" hidden>
+            <div class="admin-title">
+              <div>
+                <span class="eyebrow">RELATÓRIOS E GESTÃO</span>
+                <h1>Pedidos e Vendas</h1>
+                <p>Histórico completo de pedidos realizados e métricas de faturamento.</p>
+              </div>
+            </div>
+
+            <!-- Filtros de Vendas -->
+            <div class="sales-filters">
+              <label>
+                Mês
+                <select id="sales-month">
+                  <option value="all">Todos os meses</option>
+                </select>
+              </label>
+              <label>
+                Categoria
+                <select id="sales-category">
+                  <option value="all">Todas as categorias</option>
+                </select>
+              </label>
+              <label>
+                Produto específico
+                <select id="sales-product">
+                  <option value="all">Todos os produtos</option>
+                </select>
+              </label>
+            </div>
+
+            <!-- Métricas Financeiras -->
+            <div class="admin-stats">
+              <article class="stat-card">
+                <div class="stat-icon">R$</div>
+                <div>
+                  <span>Faturamento total</span>
+                  <strong id="sales-revenue">R$ 0,00</strong>
+                </div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon">▤</div>
+                <div>
+                  <span>Pedidos realizados</span>
+                  <strong id="sales-orders">0</strong>
+                </div>
+              </article>
+              <article class="stat-card">
+                <div class="stat-icon">▣</div>
+                <div>
+                  <span>Itens vendidos</span>
+                  <strong id="sales-units">0</strong>
+                </div>
+              </article>
+            </div>
+
+            <!-- Gráfico dos Mais Vendidos -->
+            <div class="chart-card">
+              <h2>Produtos mais vendidos</h2>
+              <p>Quantidade de unidades comercializadas no período</p>
+              <div id="sales-chart" class="sales-chart"></div>
+            </div>
+
+            <!-- Histórico de Pedidos -->
+            <div class="table-card">
+              <div class="table-head">
+                <h2>Histórico de Pedidos</h2>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Data / Hora</th>
+                      <th>Endereço de Entrega</th>
+                      <th>Itens do Pedido</th>
+                      <th>Pagamento</th>
+                      <th>Taxa Entrega</th>
+                      <th>Total</th>
+                      <th>Status do Pedido</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sales-order-list">
+                    <!-- Preenchido via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ABA 4: CONFIGURAÇÕES DA LOJA -->
+          <section id="settings-view" class="admin-view-panel" hidden>
+            <div class="admin-title">
+              <div>
+                <span class="eyebrow">CUSTOMIZAÇÃO E PARÂMETROS</span>
+                <h1>Configurações da Loja</h1>
+                <p>Personalize os dados de atendimento, taxas de entrega, frete grátis, WhatsApp e acesso administrativo.</p>
+              </div>
+            </div>
+
+            <div class="settings-grid">
+              <!-- Configurações de Atendimento e Entrega -->
+              <div class="settings-card">
+                <h2>Dados de Atendimento e Entrega</h2>
+                <form id="store-settings-form" onsubmit="handleStoreSettingsSubmit(event)">
+                  <label>
+                    WhatsApp Oficial da Loja (DDI + DDD + Número)
+                    <input id="cfg-whatsapp" type="text" placeholder="Ex.: 5592999999999" required />
+                    <small class="field-hint">Os pedidos dos clientes serão encaminhados para este número.</small>
+                  </label>
+
+                  <div class="form-grid" style="margin-top: 0;">
+                    <label>
+                      Taxa Padrão de Entrega (R$)
+                      <input id="cfg-delivery-fee" type="number" min="0" step="0.50" required placeholder="20.00" />
+                      <small class="field-hint">Cobrada em pedidos abaixo do valor de frete grátis.</small>
+                    </label>
+
+                    <label>
+                      Valor Mínimo para Frete Grátis (R$)
+                      <input id="cfg-free-shipping" type="number" min="0" step="1.00" required placeholder="20.00" />
+                      <small class="field-hint">Pedidos a partir deste valor ganham frete gratuito (Padrão: R$ 20,00).</small>
+                    </label>
+                  </div>
+
+                  <label>
+                    Frase da Barra de Avisos no Topo
+                    <input id="cfg-notice" type="text" placeholder="Ex.: Compre com segurança • Frete grátis a partir de R$ 20,00" required />
+                  </label>
+
+                  <label>
+                    Horário de Funcionamento (Exibição no Topo)
+                    <input id="cfg-store-hours-text" type="text" placeholder="Ex.: Seg. a Sáb., 8h às 20h" required />
+                    <small class="field-hint">Texto exibido na barra superior ao lado do status da farmácia.</small>
+                  </label>
+
+                  <div class="form-grid" style="margin-top: 0;">
+                    <label>
+                      Status de Atendimento
+                      <select id="cfg-store-status">
+                        <option value="auto">Automático (pelo relógio)</option>
+                        <option value="open">Sempre Aberto</option>
+                        <option value="closed">Sempre Fechado</option>
+                      </select>
+                    </label>
+                    <label>
+                      Hora de Fechamento (Auto)
+                      <input id="cfg-close-hour" type="number" min="0" max="23" value="20" placeholder="20" />
+                      <small class="field-hint">Hora para fechar no modo automático (ex.: 20 para 20h).</small>
+                    </label>
+                  </div>
+
+                  <label>
+                    Limite para Alerta de Estoque Baixo (unidades)
+                    <input id="cfg-threshold" type="number" min="1" max="100" value="5" required />
+                    <small class="field-hint">Produtos com quantidade igual ou menor que este valor entram na lista de atenção.</small>
+                  </label>
+
+                  <button class="primary-button wide" type="submit">Salvar Configurações</button>
+                </form>
+              </div>
+
+              <!-- Credenciais do Administrador -->
+              <div class="settings-card">
+                <h2>Credenciais de Acesso Administrativo</h2>
+                <form id="admin-credentials-form" onsubmit="handleAdminCredentialsSubmit(event)">
+                  <label>
+                    E-mail do Administrador
+                    <input id="cfg-admin-email" type="email" required placeholder="admin@pietrao.com" />
+                  </label>
+
+                  <label>
+                    Nova Senha
+                    <div class="password-wrapper">
+                      <input id="cfg-admin-password" type="password" minlength="4" required placeholder="Digite a nova senha" />
+                      <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('cfg-admin-password', this)" aria-label="Mostrar senha">
+                        <span class="eye-icon">👁</span>
+                      </button>
+                    </div>
+                  </label>
+
+                  <label>
+                    Confirmar Nova Senha
+                    <div class="password-wrapper">
+                      <input id="cfg-admin-password-confirm" type="password" minlength="4" required placeholder="Confirme a nova senha" />
+                      <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('cfg-admin-password-confirm', this)" aria-label="Mostrar senha">
+                        <span class="eye-icon">👁</span>
+                      </button>
+                    </div>
+                  </label>
+
+                  <p class="login-error" id="cfg-cred-error"></p>
+                  <p class="login-success" id="cfg-cred-success"></p>
+
+                  <button class="primary-button wide" type="submit">Atualizar Login e Senha</button>
+                </form>
+              </div>
+
+              <!-- Sincronização em Nuvem Multi-Dispositivos -->
+              <div class="settings-card settings-card-full">
+                <h2>Sincronização em Nuvem (Multi-Dispositivos: PC ↔ Celulares)</h2>
+                <p>Mantenha os medicamentos, preços e configurações sincronizados em tempo real entre o computador da administração e os celulares dos clientes.</p>
+                
+                <div style="margin: 14px 0;">
+                  <span id="cloud-sync-badge" class="sync-status-badge sync-status-online">
+                    <span id="cloud-sync-dot">🟢</span>
+                    <span id="cloud-sync-status-text">Sincronização Ativa</span>
+                  </span>
+                </div>
+
+                <form id="cloud-sync-form" onsubmit="handleCloudSyncSave(event)">
+                  <label>
+                    URL da Base de Dados na Nuvem (Firebase / REST API / JSON Storage)
+                    <input id="cfg-cloud-url" type="url" placeholder="https://seu-projeto-default-rtdb.firebaseio.com/pietrao_db.json" />
+                    <small class="field-hint">Ao atualizar medicamentos no seu PC, as alterações são enviadas para esta URL e carregadas em todos os celulares e computadores.</small>
+                  </label>
+
+                  <div class="backup-actions" style="margin-top: 14px;">
+                    <button class="primary-button" type="submit">Salvar Servidor de Nuvem</button>
+                    <button class="secondary-button" type="button" onclick="forceCloudSync()">🔄 Sincronizar Agora (Enviar / Receber)</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Backup / Restauração -->
+              <div class="settings-card settings-card-full">
+                <h2>Backup e Restauração de Dados</h2>
+                <p>Exporte uma cópia completa dos produtos, configurações e vendas ou restaure dados iniciais de demonstração.</p>
+                <div class="backup-actions">
+                  <button class="secondary-button" type="button" onclick="exportDataBackup()">Baixar Backup (JSON)</button>
+                  <label class="file-button">
+                    Restaurar Backup
+                    <input type="file" id="import-backup-file" accept=".json" onchange="importDataBackup(event)" hidden />
+                  </label>
+                  <button class="text-button text-danger" type="button" onclick="resetToDefaultData()">Restaurar Dados Originais</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </section>
+
+    <!-- ==================== MODAL DE PRODUTO ==================== -->
+    <dialog id="product-modal" class="modal product-modal">
+      <form id="product-form" onsubmit="handleProductSubmit(event)">
+        <button type="button" class="modal-close" data-close="product-modal">×</button>
+        <span class="eyebrow">CATÁLOGO</span>
+        <h2 id="product-modal-title">Cadastrar Novo Produto</h2>
+        <input type="hidden" id="product-id" />
+
+        <div class="form-grid">
+          <label class="grid-full">
+            Nome do Produto
+            <input id="p-name" required placeholder="Ex.: Paracetamol 750mg c/ 20 Comprimidos" />
+          </label>
+
+          <label>
+            Categoria
+            <select id="p-category" required onchange="handleCategorySelectChange(this)">
+              <option value="">Selecione uma categoria</option>
+              <!-- Preenchido via JS -->
+            </select>
+          </label>
+
+          <label id="new-category-wrapper" hidden>
+            Nome da Nova Categoria
+            <input id="p-new-category" placeholder="Digite o nome da nova categoria" />
+          </label>
+
+          <label>
+            Preço Regular (R$)
+            <input id="p-price" type="number" min="0" step="0.01" required placeholder="0.00" oninput="calculateDiscountPreview()" />
+          </label>
+
+          <label>
+            Preço Promocional (R$) <small>(Opcional)</small>
+            <input id="p-sale" type="number" min="0" step="0.01" placeholder="0.00" oninput="calculateDiscountPreview()" />
+            <span id="discount-preview-badge" class="discount-calc-badge" hidden></span>
+          </label>
+
+          <label>
+            Quantidade em Estoque (Sigilo do Administrador)
+            <input id="p-stock" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+          </label>
+        </div>
+
+        <!-- Seção de Foto do Produto -->
+        <div class="image-upload-section">
+          <label>
+            Foto do Produto
+            <div class="image-inputs">
+              <input id="p-image" type="url" placeholder="URL da imagem (https://...)" oninput="updateImagePreview(this.value)" />
+              <span class="image-or">ou</span>
+              <label class="upload-btn-label">
+                Escolher foto do dispositivo
+                <input type="file" id="p-file-input" accept="image/*" onchange="handleImageFileUpload(event)" hidden />
+              </label>
+            </div>
+          </label>
+          <div class="image-preview-container">
+            <img id="p-image-preview" src="" alt="Pré-visualização" onerror="this.style.display='none'" />
+          </div>
+        </div>
+
+        <!-- Opções de Destaque -->
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input id="p-promo" type="checkbox" />
+            <span>Marcar como <strong>Promoção do Dia</strong> (Exibido no carrossel de ofertas)</span>
+          </label>
+        </div>
+
+        <button class="primary-button wide" type="submit">Salvar Produto</button>
+      </form>
+    </dialog>
+
+    <!-- Script Principal -->
+    <script src="app.js"></script>
+  </body>
+</html>

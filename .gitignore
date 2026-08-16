@@ -1,0 +1,9 @@
+# Sistema e temporários
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# Backups e rascunhos locais
+*.bak
+scratch/
