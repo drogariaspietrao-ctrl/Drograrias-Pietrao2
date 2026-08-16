@@ -123,7 +123,7 @@ async function syncToCloud() {
   }
 }
 
-async function syncFromCloud(forceRender = true) {
+async function syncFromCloud(forceRender = false) {
   const endpoints = [
     `./db.json?t=${Date.now()}`,
     `https://raw.githubusercontent.com/${GITHUB_REPO}/main/db.json?t=${Date.now()}`
@@ -135,8 +135,18 @@ async function syncFromCloud(forceRender = true) {
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.products) && data.products.length > 0) {
+          const localTime = db.updatedAt ? new Date(db.updatedAt).getTime() : 0;
+          const remoteTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
+
+          // Se a alteração local for mais recente ou se o admin acabou de criar/editar itens, não sobrescrever!
+          if (localTime > 0 && remoteTime > 0 && localTime >= remoteTime) {
+            return false;
+          }
+
+          // Atualizar catálogo se a nuvem tiver dados válidos e mais recentes
           db.products = data.products;
           if (Array.isArray(data.sales)) db.sales = data.sales;
+          if (data.updatedAt) db.updatedAt = data.updatedAt;
           localStorage.setItem(DB_KEY, JSON.stringify(db));
 
           if (data.config) {
@@ -333,6 +343,7 @@ function loadDatabase() {
 }
 
 function saveDatabase() {
+  db.updatedAt = new Date().toISOString();
   localStorage.setItem(DB_KEY, JSON.stringify(db));
   syncToCloud();
 }
@@ -1775,12 +1786,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(renderStoreHours, 60000);
 
   // Sincronização em Nuvem Multi-Dispositivos
-  syncFromCloud(true);
-  setInterval(() => syncFromCloud(false), 25000);
-  window.addEventListener('focus', () => syncFromCloud(true));
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') syncFromCloud(true);
-  });
+  syncFromCloud(false);
+  setInterval(() => syncFromCloud(false), 30000);
 
   $('#open-cart')?.addEventListener('click', openCart);
   $('.close-cart')?.addEventListener('click', closeCart);
