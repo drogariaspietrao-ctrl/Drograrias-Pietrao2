@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=2.2" />
   </head>
   <body>
     <!-- ==================== VITRINE / STOREFRONT ==================== -->
@@ -816,24 +816,36 @@
               <!-- Sincronização em Nuvem Multi-Dispositivos -->
               <div class="settings-card settings-card-full">
                 <h2>Sincronização em Nuvem (Multi-Dispositivos: PC ↔ Celulares)</h2>
-                <p>Mantenha os medicamentos, preços e configurações sincronizados em tempo real entre o computador da administração e os celulares dos clientes.</p>
+                <p>Os produtos e preços atualizados no PC são enviados para o repositório da nuvem e carregados automaticamente nos celulares dos clientes.</p>
                 
                 <div style="margin: 14px 0;">
                   <span id="cloud-sync-badge" class="sync-status-badge sync-status-online">
                     <span id="cloud-sync-dot">🟢</span>
-                    <span id="cloud-sync-status-text">Sincronização Ativa</span>
+                    <span id="cloud-sync-status-text">Sincronização Ativa via GitHub</span>
                   </span>
                 </div>
 
                 <form id="cloud-sync-form" onsubmit="handleCloudSyncSave(event)">
-                  <label>
-                    URL da Base de Dados na Nuvem (Firebase / REST API / JSON Storage)
-                    <input id="cfg-cloud-url" type="url" placeholder="https://seu-projeto-default-rtdb.firebaseio.com/pietrao_db.json" />
-                    <small class="field-hint">Ao atualizar medicamentos no seu PC, as alterações são enviadas para esta URL e carregadas em todos os celulares e computadores.</small>
-                  </label>
+                  <div class="form-grid">
+                    <label>
+                      Repositório GitHub
+                      <input id="cfg-github-repo" readonly value="mairiciodepaula2005-creator/Drograrias-Pietrao2" style="background: #f3f4f6;" />
+                    </label>
+
+                    <label>
+                      Token de Acesso GitHub (Personal Access Token)
+                      <div class="password-wrapper">
+                        <input id="cfg-github-token" type="password" placeholder="ghp_xxxxxxxxxxxx" />
+                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('cfg-github-token', this)" aria-label="Mostrar token">
+                          <span class="eye-icon">👁</span>
+                        </button>
+                      </div>
+                      <small class="field-hint">Token para permitir que o painel admin envie os medicamentos diretamente ao GitHub.</small>
+                    </label>
+                  </div>
 
                   <div class="backup-actions" style="margin-top: 14px;">
-                    <button class="primary-button" type="submit">Salvar Servidor de Nuvem</button>
+                    <button class="primary-button" type="submit">Salvar Token do GitHub</button>
                     <button class="secondary-button" type="button" onclick="forceCloudSync()">🔄 Sincronizar Agora (Enviar / Receber)</button>
                   </div>
                 </form>
@@ -933,6 +945,6 @@
     </dialog>
 
     <!-- Script Principal -->
-    <script src="app.js"></script>
+    <script src="app.js?v=2.2"></script>
   </body>
 </html>

@@ -12,10 +12,8 @@ const AUTH_KEY = 'drogaria_pietrao_admin_session';
 const CUSTOMER_KEY = 'drogaria_pietrao_cliente_v2';
 const CUSTOMER_SESSION_KEY = 'drogaria_pietrao_cliente_sessao_v2';
 const CUSTOMER_ADDRESS_KEY = 'drogaria_pietrao_cliente_endereco_v2';
-const CLOUD_URL_KEY = 'drogaria_pietrao_cloud_url_v2';
-
-// Endpoint Padrão de Sincronização em Nuvem (Multi-Dispositivos)
-const DEFAULT_CLOUD_URL = 'https://drogaria-pietrao-default-rtdb.firebaseio.com/store_data.json';
+const GITHUB_REPO = 'mairiciodepaula2005-creator/Drograrias-Pietrao2';
+const GITHUB_TOKEN_KEY = 'drogaria_pietrao_gh_token_v2';
 
 // Visualizador de Senha Global
 window.togglePasswordVisibility = function(inputId, btn) {
@@ -29,11 +27,11 @@ window.togglePasswordVisibility = function(inputId, btn) {
   if (icon) icon.textContent = isPass ? '🔒' : '👁';
 };
 
-// Sincronização em Nuvem Multi-Dispositivos
+// Sincronização em Nuvem Multi-Dispositivos (GitHub Cloud Engine)
 let isSyncing = false;
 
-function getCloudSyncUrl() {
-  return localStorage.getItem(CLOUD_URL_KEY) || config.cloudSyncUrl || DEFAULT_CLOUD_URL;
+function getGitHubToken() {
+  return localStorage.getItem(GITHUB_TOKEN_KEY) || config.githubToken || '';
 }
 
 function updateCloudSyncUI(status, message) {
@@ -45,10 +43,10 @@ function updateCloudSyncUI(status, message) {
   badge.className = `sync-status-badge sync-status-${status}`;
   if (status === 'online') {
     dot.textContent = '🟢';
-    text.textContent = message || 'Sincronização em Nuvem Ativa (PC ↔ Celulares)';
+    text.textContent = message || 'Sincronização Ativa via GitHub (PC ↔ Celulares)';
   } else if (status === 'syncing') {
     dot.textContent = '🟡';
-    text.textContent = message || 'Sincronizando com a Nuvem...';
+    text.textContent = message || 'Enviando alterações para a nuvem...';
   } else {
     dot.textContent = '⚪';
     text.textContent = message || 'Armazenamento Local';
@@ -56,76 +54,123 @@ function updateCloudSyncUI(status, message) {
 }
 
 async function syncToCloud() {
-  const cloudUrl = getCloudSyncUrl();
-  if (!cloudUrl || isSyncing) return;
+  const token = getGitHubToken();
+  if (!token || isSyncing) return;
 
   try {
     isSyncing = true;
-    updateCloudSyncUI('syncing', 'Enviando alterações para todos os dispositivos...');
+    updateCloudSyncUI('syncing', 'Gravando alterações na nuvem...');
 
-    const payload = {
-      db: db,
-      config: config,
-      updatedAt: new Date().toISOString()
+    const payloadObj = {
+      updatedAt: new Date().toISOString(),
+      products: db.products,
+      sales: db.sales || [],
+      config: config
     };
 
-    const response = await fetch(cloudUrl, {
+    const jsonStr = JSON.stringify(payloadObj, null, 2);
+    const utf8Bytes = new TextEncoder().encode(jsonStr);
+    let binaryStr = '';
+    for (let i = 0; i < utf8Bytes.length; i++) {
+      binaryStr += String.fromCharCode(utf8Bytes[i]);
+    }
+    const base64Content = btoa(binaryStr);
+
+    // 1. Obter SHA atual do db.json no GitHub
+    let sha = null;
+    try {
+      const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/db.json?t=${Date.now()}`, {
+        headers: {
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      if (getRes.ok) {
+        const existing = await getRes.json();
+        sha = existing.sha;
+      }
+    } catch (e) {
+      console.warn('Não foi possível verificar SHA anterior:', e);
+    }
+
+    // 2. Gravar novo db.json
+    const bodyPayload = {
+      message: `sync: catálogo atualizado em ${new Date().toLocaleString('pt-BR')}`,
+      content: base64Content
+    };
+    if (sha) bodyPayload.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/db.json`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bodyPayload)
     });
 
-    if (response.ok) {
-      updateCloudSyncUI('online', 'Sincronizado na Nuvem (Disponível em celulares e PCs)');
+    if (putRes.ok) {
+      updateCloudSyncUI('online', 'Sincronizado na Nuvem GitHub (Disponível em celulares e PCs)');
     } else {
-      updateCloudSyncUI('local', 'Salvo localmente');
+      updateCloudSyncUI('local', 'Salvo localmente no computador');
     }
   } catch (err) {
-    console.warn('Sincronização em nuvem offline ou indisponível:', err);
-    updateCloudSyncUI('local', 'Salvo localmente');
+    console.warn('Sincronização em nuvem indisponível:', err);
+    updateCloudSyncUI('local', 'Salvo localmente no computador');
   } finally {
     isSyncing = false;
   }
 }
 
 async function syncFromCloud(forceRender = true) {
-  const cloudUrl = getCloudSyncUrl();
-  if (!cloudUrl) return;
+  const endpoints = [
+    `./db.json?t=${Date.now()}`,
+    `https://raw.githubusercontent.com/${GITHUB_REPO}/main/db.json?t=${Date.now()}`
+  ];
 
-  try {
-    const response = await fetch(cloudUrl, { cache: 'no-store' });
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data.db && Array.isArray(data.db.products) && data.db.products.length > 0) {
-        db = data.db;
-        localStorage.setItem(DB_KEY, JSON.stringify(db));
-        if (data.config) {
-          config = { ...DEFAULT_CONFIG, ...data.config };
-          localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-        }
-        updateCloudSyncUI('online', 'Sincronizado na Nuvem (Disponível em celulares e PCs)');
-        if (forceRender) {
-          applyStoreConfig();
-          renderCategoryCards();
-          renderStore();
-          renderStoreHours();
-          if (isAdminLogged()) {
-            renderAdminDashboard();
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.products) && data.products.length > 0) {
+          db.products = data.products;
+          if (Array.isArray(data.sales)) db.sales = data.sales;
+          localStorage.setItem(DB_KEY, JSON.stringify(db));
+
+          if (data.config) {
+            config = { ...DEFAULT_CONFIG, ...data.config };
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
           }
+
+          updateCloudSyncUI('online', 'Sincronizado na Nuvem GitHub (Ativo em celulares e PCs)');
+
+          if (forceRender) {
+            applyStoreConfig();
+            renderCategoryCards();
+            renderStore();
+            renderStoreHours();
+            if (isAdminLogged()) {
+              renderAdminDashboard();
+            }
+          }
+          return true;
         }
       }
+    } catch (err) {
+      // continua para proximo endpoint
     }
-  } catch (err) {
-    console.warn('Não foi possível sincronizar da nuvem:', err);
   }
+  return false;
 }
 
 window.handleCloudSyncSave = function(e) {
   e.preventDefault();
-  const url = $('#cfg-cloud-url').value.trim();
-  if (url) {
-    localStorage.setItem(CLOUD_URL_KEY, url);
-    config.cloudSyncUrl = url;
+  const token = $('#cfg-github-token').value.trim();
+  if (token) {
+    localStorage.setItem(GITHUB_TOKEN_KEY, token);
+    config.githubToken = token;
     saveConfig();
   }
   forceCloudSync();
@@ -135,7 +180,7 @@ window.forceCloudSync = async function() {
   updateCloudSyncUI('syncing', 'Sincronizando...');
   await syncToCloud();
   await syncFromCloud(true);
-  alert('Sincronização concluída! Os medicamentos e preços foram enviados e sincronizados.');
+  alert('Sincronização concluída! Os dados estão sincronizados com a nuvem do GitHub.');
 };
 
 // Imagem padrão
@@ -1425,7 +1470,7 @@ function renderAdminSettings() {
   $('#cfg-close-hour').value = config.closeHour !== undefined ? config.closeHour : DEFAULT_CONFIG.closeHour;
   $('#cfg-threshold').value = config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold;
   $('#cfg-admin-email').value = config.adminEmail || DEFAULT_CONFIG.adminEmail;
-  if ($('#cfg-cloud-url')) $('#cfg-cloud-url').value = getCloudSyncUrl();
+  if ($('#cfg-github-token')) $('#cfg-github-token').value = getGitHubToken();
   $('#cfg-admin-password').value = '';
   $('#cfg-admin-password-confirm').value = '';
   $('#cfg-cred-error').textContent = '';
