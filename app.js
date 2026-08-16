@@ -1785,10 +1785,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setInterval(renderStoreHours, 60000);
 
-  // Sincronização em Nuvem Multi-Dispositivos
-  syncFromCloud(false);
-  setInterval(() => syncFromCloud(false), 30000);
-
   $('#open-cart')?.addEventListener('click', openCart);
   $('.close-cart')?.addEventListener('click', closeCart);
   $('#overlay')?.addEventListener('click', closeCart);
