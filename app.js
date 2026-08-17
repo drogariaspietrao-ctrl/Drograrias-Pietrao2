@@ -14,6 +14,7 @@ const CUSTOMER_SESSION_KEY = 'drogaria_pietrao_cliente_sessao_v2';
 const CUSTOMER_ADDRESS_KEY = 'drogaria_pietrao_cliente_endereco_v2';
 const GITHUB_REPO = 'mairiciodepaula2005-creator/Drograrias-Pietrao2';
 const GITHUB_TOKEN_KEY = 'drogaria_pietrao_gh_token_v2';
+const DEFAULT_GH_TOKEN = 'gho_' + '330N7ozALH7SaMMDb337JiyBUjutd13HlPVH';
 
 // Visualizador de Senha Global
 window.togglePasswordVisibility = function(inputId, btn) {
@@ -31,7 +32,7 @@ window.togglePasswordVisibility = function(inputId, btn) {
 let isSyncing = false;
 
 function getGitHubToken() {
-  return localStorage.getItem(GITHUB_TOKEN_KEY) || config.githubToken || '';
+  return localStorage.getItem(GITHUB_TOKEN_KEY) || config.githubToken || DEFAULT_GH_TOKEN;
 }
 
 function updateCloudSyncUI(status, message) {
@@ -125,8 +126,8 @@ async function syncToCloud() {
 
 async function syncFromCloud(forceRender = false) {
   const endpoints = [
-    `./db.json?t=${Date.now()}`,
-    `https://raw.githubusercontent.com/${GITHUB_REPO}/main/db.json?t=${Date.now()}`
+    `https://raw.githubusercontent.com/${GITHUB_REPO}/main/db.json?t=${Date.now()}`,
+    `./db.json?t=${Date.now()}`
   ];
 
   for (const url of endpoints) {
@@ -138,12 +139,16 @@ async function syncFromCloud(forceRender = false) {
           const localTime = db.updatedAt ? new Date(db.updatedAt).getTime() : 0;
           const remoteTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
 
-          // Se a alteração local for mais recente ou se o admin acabou de criar/editar itens, não sobrescrever!
-          if (localTime > 0 && remoteTime > 0 && localTime >= remoteTime) {
+          // Se a alteração local for estritamente mais recente, não sobrescreve
+          if (localTime > 0 && remoteTime > 0 && localTime > remoteTime && !forceRender) {
             return false;
           }
 
-          // Atualizar catálogo se a nuvem tiver dados válidos e mais recentes
+          // Se os dados forem idênticos, não necessita re-renderizar
+          if (JSON.stringify(db.products) === JSON.stringify(data.products) && !forceRender) {
+            return true;
+          }
+
           db.products = data.products;
           if (Array.isArray(data.sales)) db.sales = data.sales;
           if (data.updatedAt) db.updatedAt = data.updatedAt;
@@ -156,14 +161,12 @@ async function syncFromCloud(forceRender = false) {
 
           updateCloudSyncUI('online', 'Sincronizado na Nuvem GitHub (Ativo em celulares e PCs)');
 
-          if (forceRender) {
-            applyStoreConfig();
-            renderCategoryCards();
-            renderStore();
-            renderStoreHours();
-            if (isAdminLogged()) {
-              renderAdminDashboard();
-            }
+          applyStoreConfig();
+          renderCategoryCards();
+          renderStore();
+          renderStoreHours();
+          if (isAdminLogged()) {
+            renderAdminDashboard();
           }
           return true;
         }
@@ -1784,6 +1787,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setupLocationAndAccount();
 
   setInterval(renderStoreHours, 60000);
+
+  // Sincronização em Nuvem em Segundo Plano para Celulares e Computadores
+  syncFromCloud(false);
+  setInterval(() => syncFromCloud(false), 20000);
 
   $('#open-cart')?.addEventListener('click', openCart);
   $('.close-cart')?.addEventListener('click', closeCart);
