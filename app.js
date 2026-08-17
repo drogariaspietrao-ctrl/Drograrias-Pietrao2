@@ -82,7 +82,7 @@ async function syncToCloud() {
     try {
       const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/db.json?t=${Date.now()}`, {
         headers: {
-          'Authorization': `token ${token}`,
+          'Authorization': `Bearer ${token}`,
           'Accept': 'application/vnd.github.v3+json'
         }
       });
@@ -104,7 +104,7 @@ async function syncToCloud() {
     const putRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/db.json`, {
       method: 'PUT',
       headers: {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
       },

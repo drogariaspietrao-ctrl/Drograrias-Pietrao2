@@ -2218,6 +2218,27 @@ th {
   .product-image-wrap {
     height: 168px;
   }
+  .card-buy {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .card-quantity {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .card-quantity button {
+    flex: 1;
+    height: 32px;
+  }
+  .card-qty-input {
+    flex: 1;
+    text-align: center;
+  }
+  .add-button {
+    width: 100%;
+    padding: 8px 4px;
+    font-size: 0.72rem;
+  }
   .footer-grid {
     grid-template-columns: 1fr;
   }
@@ -2236,5 +2257,10 @@ th {
   }
   .form-grid, .sales-filters {
     grid-template-columns: 1fr;
+  }
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
   }
 }
