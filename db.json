@@ -1,85 +1,116 @@
-﻿{
-    "updatedAt":  "2026-08-16T21:51:30Z",
-    "products":  [
-                     {
-                         "stock":  18,
-                         "image":  "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format\u0026fit=crop\u0026w=500\u0026q=80",
-                         "promo":  true,
-                         "category":  "Medicamentos",
-                         "price":  15.9,
-                         "sale":  10.9,
-                         "name":  "Paracetamol 750mg c/ 20 Comprimidos",
-                         "id":  1
-                     },
-                     {
-                         "stock":  25,
-                         "image":  "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format\u0026fit=crop\u0026w=500\u0026q=80",
-                         "promo":  false,
-                         "category":  "Medicamentos",
-                         "price":  8.9,
-                         "sale":  null,
-                         "name":  "Dipirona Monoidratada 500mg/ml Gotas 20ml",
-                         "id":  2
-                     },
-                     {
-                         "stock":  12,
-                         "image":  "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format\u0026fit=crop\u0026w=500\u0026q=80",
-                         "promo":  true,
-                         "category":  "Vitaminas e Suplementos",
-                         "price":  32.9,
-                         "sale":  23.9,
-                         "name":  "Vitamina C 1g + Zinco 30 Comprimidos Efervescentes",
-                         "id":  3
-                     },
-                     {
-                         "stock":  4,
-                         "image":  "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format\u0026fit=crop\u0026w=500\u0026q=80",
-                         "promo":  true,
-                         "category":  "DermocosmÃ©ticos",
-                         "price":  58.9,
-                         "sale":  44.9,
-                         "name":  "Protetor Solar Facial FPS 50 Toque Seco 50g",
-                         "id":  4
-                     },
-                     {
-                         "stock":  14,
-                         "image":  "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format\u0026fit=crop\u0026w=500\u0026q=80",
-                         "promo":  false,
-                         "category":  "Higiene e beleza",
-                         "price":  24.5,
-                         "sale":  null,
-                         "name":  "Shampoo Anticaspa Nutritivo 400ml",
-                         "id":  5
-                     },
-                     {
-                         "stock":  0,
-                         "image":  "https://images.unsplash.com/photo-1584483766114-2cea6facdf57?auto=format\u0026fit=crop\u0026w=500\u0026q=80",
-                         "promo":  false,
-                         "category":  "Higiene e beleza",
-                         "price":  12.9,
-                         "sale":  null,
-                         "name":  "Ãlcool em Gel 70% Hidratante 500ml",
-                         "id":  6
-                     },
-                     {
-                         "stock":  7,
-                         "image":  "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format\u0026fit=crop\u0026w=500\u0026q=80",
-                         "promo":  true,
-                         "category":  "Mundo infantil",
-                         "price":  49.9,
-                         "sale":  39.9,
-                         "name":  "Fralda Infantil Confort Premium Tamanho G c/ 32 un.",
-                         "id":  7
-                     },
-                     {
-                         "stock":  3,
-                         "image":  "https://images.unsplash.com/photo-1603398938378-e54eab446dde?auto=format\u0026fit=crop\u0026w=500\u0026q=80",
-                         "promo":  false,
-                         "category":  "Primeiros socorros",
-                         "price":  27.9,
-                         "sale":  null,
-                         "name":  "Kit Primeiros Socorros c/ Esparadrapo, Gaze e AntissÃ©ptico",
-                         "id":  8
-                     }
-                 ]
+{
+  "updatedAt": "2026-08-18T02:15:18.354Z",
+  "products": [
+    {
+      "id": 1787019318353,
+      "name": "DIPIRONA",
+      "category": "Medicamentos",
+      "price": 10,
+      "sale": 5,
+      "stock": 10,
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcv_a1URHdVxFR8qCh_UBTyRHOB-rJDKjEOeX-3djIuQ&s=10",
+      "promo": false
+    },
+    {
+      "stock": 18,
+      "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80",
+      "promo": true,
+      "category": "Medicamentos",
+      "price": 15.9,
+      "sale": 10.9,
+      "name": "Paracetamol 750mg c/ 20 Comprimidos",
+      "id": 1
+    },
+    {
+      "stock": 25,
+      "image": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=500&q=80",
+      "promo": false,
+      "category": "Medicamentos",
+      "price": 8.9,
+      "sale": null,
+      "name": "Dipirona Monoidratada 500mg/ml Gotas 20ml",
+      "id": 2
+    },
+    {
+      "stock": 12,
+      "image": "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=500&q=80",
+      "promo": true,
+      "category": "Vitaminas e Suplementos",
+      "price": 32.9,
+      "sale": 23.9,
+      "name": "Vitamina C 1g + Zinco 30 Comprimidos Efervescentes",
+      "id": 3
+    },
+    {
+      "stock": 4,
+      "image": "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&w=500&q=80",
+      "promo": true,
+      "category": "DermocosmÃ©ticos",
+      "price": 58.9,
+      "sale": 44.9,
+      "name": "Protetor Solar Facial FPS 50 Toque Seco 50g",
+      "id": 4
+    },
+    {
+      "stock": 14,
+      "image": "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&w=500&q=80",
+      "promo": false,
+      "category": "Higiene e beleza",
+      "price": 24.5,
+      "sale": null,
+      "name": "Shampoo Anticaspa Nutritivo 400ml",
+      "id": 5
+    },
+    {
+      "stock": 0,
+      "image": "https://images.unsplash.com/photo-1584483766114-2cea6facdf57?auto=format&fit=crop&w=500&q=80",
+      "promo": false,
+      "category": "Higiene e beleza",
+      "price": 12.9,
+      "sale": null,
+      "name": "Ãlcool em Gel 70% Hidratante 500ml",
+      "id": 6
+    },
+    {
+      "stock": 7,
+      "image": "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=500&q=80",
+      "promo": true,
+      "category": "Mundo infantil",
+      "price": 49.9,
+      "sale": 39.9,
+      "name": "Fralda Infantil Confort Premium Tamanho G c/ 32 un.",
+      "id": 7
+    },
+    {
+      "stock": 3,
+      "image": "https://images.unsplash.com/photo-1603398938378-e54eab446dde?auto=format&fit=crop&w=500&q=80",
+      "promo": false,
+      "category": "Primeiros socorros",
+      "price": 27.9,
+      "sale": null,
+      "name": "Kit Primeiros Socorros c/ Esparadrapo, Gaze e AntissÃ©ptico",
+      "id": 8
+    }
+  ],
+  "sales": [],
+  "config": {
+    "adminEmail": "admin@pietrao.com",
+    "adminPassword": "admin123",
+    "whatsapp": "5592999999999",
+    "storeNotice": "Compre com segurança • Frete grátis a partir de R$ 20,00",
+    "lowStockThreshold": 5,
+    "deliveryFee": 20,
+    "freeShippingThreshold": 20,
+    "categories": [
+      "Medicamentos",
+      "Higiene e beleza",
+      "Dermocosméticos",
+      "Vitaminas e Suplementos",
+      "Mundo infantil",
+      "Primeiros socorros"
+    ],
+    "storeHoursText": "Seg. a Sáb., 8h às 20h",
+    "storeStatusMode": "auto",
+    "closeHour": 20
+  }
 }
