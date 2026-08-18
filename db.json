@@ -1,16 +1,6 @@
 {
-  "updatedAt": "2026-08-18T02:15:18.354Z",
+  "updatedAt": "2026-08-18T02:55:52.394Z",
   "products": [
-    {
-      "id": 1787019318353,
-      "name": "DIPIRONA",
-      "category": "Medicamentos",
-      "price": 10,
-      "sale": 5,
-      "stock": 10,
-      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcv_a1URHdVxFR8qCh_UBTyRHOB-rJDKjEOeX-3djIuQ&s=10",
-      "promo": false
-    },
     {
       "stock": 18,
       "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80",
