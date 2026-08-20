@@ -1,6 +1,16 @@
 {
-  "updatedAt": "2026-08-20T04:16:05.327Z",
+  "updatedAt": "2026-08-20T04:22:36.240Z",
   "products": [
+    {
+      "id": 1787199756240,
+      "name": "ZINCO",
+      "category": "Medicamentos",
+      "price": 10,
+      "sale": 5,
+      "stock": 10,
+      "image": "https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQR6Mo1r5t3h91TBgNKbFSXKQkIlzMvzVSjMoSXPtBTqbTQEzivzy8sqeUPFAS3i3FmxkY0oz9_emkGccVJg-LF-Q1-IWxF7BEMw_Y-scVF46UrYZxJ5djuprVSTJxsGyok-u1FUA&usqp=CAc",
+      "promo": true
+    },
     {
       "id": 1787199265589,
       "name": "VITAMINA C",
