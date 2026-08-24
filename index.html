@@ -526,7 +526,15 @@
                 <h1>Catálogo de Produtos</h1>
                 <p>Cadastre novos itens, altere preços regulares e promocionais, fotos e quantidades de estoque.</p>
               </div>
-              <button id="new-product" class="primary-button" type="button">+ Novo Produto</button>
+              <div class="admin-title-actions">
+                <button class="secondary-button" style="background:#fff7ed; border-color:#fdba74; color:#c2410c; font-weight:700;" onclick="seedInitialProductsToFirestore()" type="button" title="Gravar catálogo padrão diretamente no Firebase">🔥 Enviar Base p/ Firebase</button>
+                <button class="secondary-button excel-btn" onclick="exportExcelDatabase()" type="button" title="Baixar catálogo em planilha Excel">📊 Baixar Planilha Excel</button>
+                <label class="file-button secondary-button excel-btn" title="Importar dados de BANCO DE DADOS.xlsx">
+                  📤 Importar Planilha
+                  <input type="file" id="catalog-excel-import" accept=".xlsx,.xls" onchange="handleExcelFileInput(event)" hidden />
+                </label>
+                <button id="new-product" class="primary-button" type="button">+ Novo Produto</button>
+              </div>
             </div>
 
             <!-- Cards de Estatísticas do Catálogo -->
@@ -813,52 +821,79 @@
                 </form>
               </div>
 
-              <!-- Sincronização em Nuvem Multi-Dispositivos -->
-              <div class="settings-card settings-card-full">
-                <h2>Sincronização em Nuvem (Multi-Dispositivos: PC ↔ Celulares)</h2>
-                <p>Os produtos e preços atualizados no PC são enviados para o repositório da nuvem e carregados automaticamente nos celulares dos clientes.</p>
-                
-                <div style="margin: 14px 0;">
+              <!-- Banco de Dados em Nuvem (Firebase Firestore) -->
+              <div class="settings-card settings-card-full" style="border-top: 4px solid #f58220;">
+                <div class="card-header-flex">
+                  <div>
+                    <h2>🔥 Banco de Dados em Nuvem (Firebase Cloud Firestore)</h2>
+                    <p>Todos os medicamentos, preços, estoque e pedidos são sincronizados instantaneamente em tempo real na nuvem do Firebase.</p>
+                  </div>
                   <span id="cloud-sync-badge" class="sync-status-badge sync-status-online">
                     <span id="cloud-sync-dot">🟢</span>
-                    <span id="cloud-sync-status-text">Sincronização Ativa via GitHub</span>
+                    <span id="cloud-sync-status-text">Firebase Firestore Conectado (Tempo Real Ativo)</span>
                   </span>
                 </div>
 
-                <form id="cloud-sync-form" onsubmit="handleCloudSyncSave(event)">
-                  <div class="form-grid">
-                    <label>
-                      Repositório GitHub
-                      <input id="cfg-github-repo" readonly value="mairiciodepaula2005-creator/Drograrias-Pietrao2" style="background: #f3f4f6;" />
-                    </label>
+                <div class="excel-actions-grid" style="margin-top: 10px;">
+                  <div class="excel-action-box" style="border-color: #fed7aa;">
+                    <strong style="color: #c2410c;">☁️ Projeto Firebase</strong>
+                    <p>ID do Projeto: <code>drogarias-pietrao</code><br>Coleção Principal: <code>produtos</code></p>
+                    <small style="color: var(--muted); font-size: 0.72rem;">Qualquer alteração em celulares ou computadores atualiza a vitrine de todos os clientes em tempo real.</small>
+                  </div>
 
-                    <label>
-                      Token de Acesso GitHub (Personal Access Token)
-                      <div class="password-wrapper">
-                        <input id="cfg-github-token" type="password" placeholder="ghp_xxxxxxxxxxxx" />
-                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('cfg-github-token', this)" aria-label="Mostrar token">
-                          <span class="eye-icon">👁</span>
-                        </button>
-                      </div>
-                      <small class="field-hint">Token para permitir que o painel admin envie os medicamentos diretamente ao GitHub.</small>
+                  <div class="excel-action-box" style="border-color: #fed7aa;">
+                    <strong style="color: #c2410c;">⚡ Status da Conexão</strong>
+                    <p id="firestore-sync-details">Sincronização em tempo real ativa. Ouvindo atualizações da coleção <code>produtos</code>.</p>
+                    <button class="secondary-button" type="button" onclick="seedInitialProductsToFirestore()">🌱 Restaurar Produtos Base no Firebase</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Banco de Dados em Planilha Excel (BANCO DE DADOS.xlsx) -->
+              <div class="settings-card settings-card-full excel-card">
+                <div class="card-header-flex">
+                  <div>
+                    <h2>📊 Banco de Dados em Planilha Excel (BANCO DE DADOS.xlsx)</h2>
+                    <p>Todos os medicamentos, preços, estoques, categorias e pedidos podem ser sincronizados e editados pela planilha <strong>BANCO DE DADOS.xlsx</strong>.</p>
+                  </div>
+                  <span id="excel-sync-badge" class="sync-status-badge sync-status-online">
+                    <span id="excel-sync-dot">🟢</span>
+                    <span id="excel-sync-status-text">Planilha Excel Ativa</span>
+                  </span>
+                </div>
+
+                <div class="excel-actions-grid">
+                  <div class="excel-action-box">
+                    <strong>📥 Exportar Planilha Atualizada</strong>
+                    <p>Gera o arquivo <code>BANCO DE DADOS.xlsx</code> completo com todas as abas (Produtos, Configurações, Categorias e Pedidos).</p>
+                    <button class="primary-button" type="button" onclick="exportExcelDatabase()">Baixar BANCO DE DADOS.xlsx</button>
+                  </div>
+
+                  <div class="excel-action-box">
+                    <strong>📤 Importar / Atualizar via Planilha</strong>
+                    <p>Carregue a planilha <code>BANCO DE DADOS.xlsx</code> editada no Excel para atualizar todos os medicamentos e preços instantaneamente.</p>
+                    <label class="file-button primary-button" style="display:inline-block; text-align:center;">
+                      Selecionar Planilha Excel
+                      <input type="file" id="settings-excel-import" accept=".xlsx,.xls" onchange="handleExcelFileInput(event)" hidden />
                     </label>
                   </div>
 
-                  <div class="backup-actions" style="margin-top: 14px;">
-                    <button class="primary-button" type="submit">Salvar Token do GitHub</button>
-                    <button class="secondary-button" type="button" onclick="forceCloudSync()">🔄 Sincronizar Agora (Enviar / Receber)</button>
+                  <div class="excel-action-box">
+                    <strong>⚡ Conexão Direta (Gravação no Disco)</strong>
+                    <p>Vincule o arquivo <code>BANCO DE DADOS.xlsx</code> no computador para que alterações feitas no painel salvem automaticamente no disco.</p>
+                    <button class="secondary-button" type="button" onclick="connectLocalExcelFile()">Conectar Arquivo Local</button>
                   </div>
-                </form>
+                </div>
               </div>
 
               <!-- Backup / Restauração -->
               <div class="settings-card settings-card-full">
-                <h2>Backup e Restauração de Dados</h2>
+                <h2>Backup e Restauração de Dados (JSON)</h2>
                 <p>Exporte uma cópia completa dos produtos, configurações e vendas ou restaure dados iniciais de demonstração.</p>
                 <div class="backup-actions">
                   <button class="secondary-button" type="button" onclick="exportDataBackup()">Baixar Backup (JSON)</button>
                   <label class="file-button">
-                    Restaurar Backup
+                    Restaurar Backup (JSON)
                     <input type="file" id="import-backup-file" accept=".json" onchange="importDataBackup(event)" hidden />
                   </label>
                   <button class="text-button text-danger" type="button" onclick="resetToDefaultData()">Restaurar Dados Originais</button>
@@ -944,7 +979,9 @@
       </form>
     </dialog>
 
-    <!-- Script Principal -->
-    <script src="app.js?v=3.2"></script>
+    <!-- Leitor e Gerador de Planilhas Excel -->
+    <script src="xlsx.full.min.js"></script>
+    <!-- Script Principal como Módulo ES6 com Firebase -->
+    <script type="module" src="app.js?v=4.2"></script>
   </body>
 </html>
