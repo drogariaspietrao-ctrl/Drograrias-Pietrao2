@@ -1,200 +1,59 @@
 /**
  * ==========================================================================
- * DROGARIAS PIETRÃO - SISTEMA COMPLETO (VITRINE, CARRINHO E ADMIN)
- * Padrão Corporativo e Farmacêutico
+ * DROGARIAS PIETRÃO - SISTEMA COMPLETO EM NUVEM (FIREBASE FIRESTORE)
+ * Vitrine em Tempo Real, Carrinho, WhatsApp e Painel Administrativo
  * ==========================================================================
  */
 
-// Chaves de Armazenamento Local e Nuvem
-const DB_KEY = 'drogaria_pietrao_db_v2';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  writeBatch
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+// ==========================================================================
+// CONFIGURAÇÃO DO FIREBASE CLOUD
+// ==========================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCqYx5jeKQbtwPrct2kYflb5coqkDfyRyY",
+  authDomain: "drogarias-pietrao.firebaseapp.com",
+  projectId: "drogarias-pietrao",
+  storageBucket: "drogarias-pietrao.firebasestorage.app",
+  messagingSenderId: "196475357342",
+  appId: "1:196475357342:web:67c53cbcecb40d9f53538f",
+  measurementId: "G-HW7PLSPTH9"
+};
+
+// Inicialização do Firebase
+const app = initializeApp(firebaseConfig);
+
+let analytics = null;
+try {
+  analytics = getAnalytics(app);
+} catch (e) {
+  // Analytics é opcional em ambientes locais/restritos
+}
+
+const dbFirestore = getFirestore(app);
+const produtosCol = collection(dbFirestore, "produtos");
+const configDocRef = doc(dbFirestore, "configuracoes", "loja");
+const pedidosCol = collection(dbFirestore, "pedidos");
+
+// Chaves de Sessão Local (Apenas Login do Usuário e Endereço)
 const CONFIG_KEY = 'drogaria_pietrao_config_v2';
 const AUTH_KEY = 'drogaria_pietrao_admin_session';
 const CUSTOMER_KEY = 'drogaria_pietrao_cliente_v2';
 const CUSTOMER_SESSION_KEY = 'drogaria_pietrao_cliente_sessao_v2';
 const CUSTOMER_ADDRESS_KEY = 'drogaria_pietrao_cliente_endereco_v2';
-const GITHUB_REPO = 'mairiciodepaula2005-creator/Drograrias-Pietrao2';
-const GITHUB_TOKEN_KEY = 'drogaria_pietrao_gh_token_v2';
-const DEFAULT_GH_TOKEN = 'gho_' + '330N7ozALH7SaMMDb337JiyBUjutd13HlPVH';
-
-// Visualizador de Senha Global
-window.togglePasswordVisibility = function(inputId, btn) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  const isPass = input.type === 'password';
-  input.type = isPass ? 'text' : 'password';
-  btn.setAttribute('aria-label', isPass ? 'Ocultar senha' : 'Mostrar senha');
-  btn.classList.toggle('active', isPass);
-  const icon = btn.querySelector('.eye-icon');
-  if (icon) icon.textContent = isPass ? '🔒' : '👁';
-};
-
-// Sincronização em Nuvem Multi-Dispositivos (GitHub Cloud Engine)
-let isSyncing = false;
-
-function getGitHubToken() {
-  return localStorage.getItem(GITHUB_TOKEN_KEY) || config.githubToken || DEFAULT_GH_TOKEN;
-}
-
-function updateCloudSyncUI(status, message) {
-  const badge = $('#cloud-sync-badge');
-  const dot = $('#cloud-sync-dot');
-  const text = $('#cloud-sync-status-text');
-  if (!badge || !dot || !text) return;
-
-  badge.className = `sync-status-badge sync-status-${status}`;
-  if (status === 'online') {
-    dot.textContent = '🟢';
-    text.textContent = message || 'Sincronização Ativa via GitHub (PC ↔ Celulares)';
-  } else if (status === 'syncing') {
-    dot.textContent = '🟡';
-    text.textContent = message || 'Enviando alterações para a nuvem...';
-  } else {
-    dot.textContent = '⚪';
-    text.textContent = message || 'Armazenamento Local';
-  }
-}
-
-async function syncToCloud() {
-  const token = getGitHubToken();
-  if (!token || isSyncing) return;
-
-  try {
-    isSyncing = true;
-    updateCloudSyncUI('syncing', 'Gravando alterações na nuvem...');
-
-    const payloadObj = {
-      updatedAt: new Date().toISOString(),
-      products: db.products,
-      sales: db.sales || [],
-      config: config
-    };
-
-    const jsonStr = JSON.stringify(payloadObj, null, 2);
-    const utf8Bytes = new TextEncoder().encode(jsonStr);
-    let binaryStr = '';
-    for (let i = 0; i < utf8Bytes.length; i++) {
-      binaryStr += String.fromCharCode(utf8Bytes[i]);
-    }
-    const base64Content = btoa(binaryStr);
-
-    // 1. Obter SHA atual do db.json no GitHub
-    let sha = null;
-    try {
-      const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/db.json?t=${Date.now()}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
-      if (getRes.ok) {
-        const existing = await getRes.json();
-        sha = existing.sha;
-      }
-    } catch (e) {
-      console.warn('Não foi possível verificar SHA anterior:', e);
-    }
-
-    // 2. Gravar novo db.json
-    const bodyPayload = {
-      message: `sync: catálogo atualizado em ${new Date().toLocaleString('pt-BR')}`,
-      content: base64Content
-    };
-    if (sha) bodyPayload.sha = sha;
-
-    const putRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/db.json`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(bodyPayload)
-    });
-
-    if (putRes.ok) {
-      updateCloudSyncUI('online', 'Sincronizado na Nuvem GitHub (Disponível em celulares e PCs)');
-    } else {
-      updateCloudSyncUI('local', 'Salvo localmente no computador');
-    }
-  } catch (err) {
-    console.warn('Sincronização em nuvem indisponível:', err);
-    updateCloudSyncUI('local', 'Salvo localmente no computador');
-  } finally {
-    isSyncing = false;
-  }
-}
-
-async function syncFromCloud(forceRender = false) {
-  const endpoints = [
-    `https://raw.githubusercontent.com/${GITHUB_REPO}/main/db.json?t=${Date.now()}`,
-    `./db.json?t=${Date.now()}`
-  ];
-
-  for (const url of endpoints) {
-    try {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && Array.isArray(data.products) && data.products.length > 0) {
-          const localTime = db.updatedAt ? new Date(db.updatedAt).getTime() : 0;
-          const remoteTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
-
-          // Se a alteração local for estritamente mais recente, não sobrescreve
-          if (localTime > 0 && remoteTime > 0 && localTime > remoteTime && !forceRender) {
-            return false;
-          }
-
-          // Se os dados forem idênticos, não necessita re-renderizar
-          if (JSON.stringify(db.products) === JSON.stringify(data.products) && !forceRender) {
-            return true;
-          }
-
-          db.products = data.products;
-          if (Array.isArray(data.sales)) db.sales = data.sales;
-          if (data.updatedAt) db.updatedAt = data.updatedAt;
-          localStorage.setItem(DB_KEY, JSON.stringify(db));
-
-          if (data.config) {
-            config = { ...DEFAULT_CONFIG, ...data.config };
-            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-          }
-
-          updateCloudSyncUI('online', 'Sincronizado na Nuvem GitHub (Ativo em celulares e PCs)');
-
-          applyStoreConfig();
-          renderCategoryCards();
-          renderStore();
-          renderStoreHours();
-          if (isAdminLogged()) {
-            renderAdminDashboard();
-          }
-          return true;
-        }
-      }
-    } catch (err) {
-      // continua para proximo endpoint
-    }
-  }
-  return false;
-}
-
-window.handleCloudSyncSave = function(e) {
-  e.preventDefault();
-  const token = $('#cfg-github-token').value.trim();
-  if (token) {
-    localStorage.setItem(GITHUB_TOKEN_KEY, token);
-    config.githubToken = token;
-    saveConfig();
-  }
-  forceCloudSync();
-};
-
-window.forceCloudSync = async function() {
-  updateCloudSyncUI('syncing', 'Sincronizando...');
-  await syncToCloud();
-  await syncFromCloud(true);
-  alert('Sincronização concluída! Os dados estão sincronizados com a nuvem do GitHub.');
-};
 
 // Imagem padrão
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80';
@@ -224,7 +83,7 @@ const DEFAULT_CONFIG = {
   closeHour: 20
 };
 
-// Produtos Iniciais de Demonstração
+// Catálogo Base de Produtos
 const SEED_PRODUCTS = [
   {
     id: 1,
@@ -308,14 +167,15 @@ const SEED_PRODUCTS = [
   }
 ];
 
-// Estado da Aplicação
-let db = loadDatabase();
-let config = loadConfig();
+// Estado da Aplicação (Memória em Tempo Real - Zero LocalStorage para Produtos)
+let db = { products: [], sales: [] };
+let config = { ...DEFAULT_CONFIG };
 let cart = [];
 let currentCategory = 'Todos';
 let currentAdminTab = 'catalog';
+let isFirestoreInitialized = false;
 
-// Utilitários
+// Utilitários de DOM e Formatação
 const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
 const money = num => Number(num || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -328,57 +188,208 @@ function normalizeStr(str) {
     .trim();
 }
 
-function loadDatabase() {
-  try {
-    const saved = localStorage.getItem(DB_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (!Array.isArray(parsed.products)) parsed.products = SEED_PRODUCTS;
-      if (!Array.isArray(parsed.sales)) parsed.sales = [];
-      return parsed;
-    }
-  } catch (e) {
-    console.error('Erro ao carregar banco:', e);
+// Visualizador de Senha
+window.togglePasswordVisibility = function(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  btn.setAttribute('aria-label', isPass ? 'Ocultar senha' : 'Mostrar senha');
+  btn.classList.toggle('active', isPass);
+  const icon = btn.querySelector('.eye-icon');
+  if (icon) icon.textContent = isPass ? '🔒' : '👁';
+};
+
+// Notificações Toast Flutuantes
+function showToast(message) {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+    document.body.appendChild(container);
   }
-  const initial = { products: SEED_PRODUCTS, sales: [] };
-  localStorage.setItem(DB_KEY, JSON.stringify(initial));
-  return initial;
+
+  const toast = document.createElement('div');
+  toast.style.cssText = 'background:#14532d;color:#ffffff;padding:12px 18px;border-radius:8px;font-size:0.82rem;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;align-items:center;gap:8px;pointer-events:auto;border-left:4px solid #22c55e;transition:all 0.3s ease;';
+  toast.innerHTML = `<span>${message}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+    setTimeout(() => toast.remove(), 350);
+  }, 3500);
 }
 
-function saveDatabase() {
-  db.updatedAt = new Date().toISOString();
-  localStorage.setItem(DB_KEY, JSON.stringify(db));
-  syncToCloud();
-}
+function updateCloudSyncUI(status, message) {
+  const badge = $('#cloud-sync-badge');
+  const dot = $('#cloud-sync-dot');
+  const text = $('#cloud-sync-status-text');
+  if (!badge || !dot || !text) return;
 
-function loadConfig() {
-  try {
-    const saved = localStorage.getItem(CONFIG_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.deliveryFee === 5 || parsed.deliveryFee === undefined) {
-        parsed.deliveryFee = 20.00;
-      }
-      if (parsed.freeShippingThreshold === undefined) {
-        parsed.freeShippingThreshold = 20.00;
-      }
-      return { ...DEFAULT_CONFIG, ...parsed };
-    }
-  } catch (e) {
-    console.error('Erro ao carregar configs:', e);
+  badge.className = `sync-status-badge sync-status-${status}`;
+  if (status === 'online') {
+    dot.textContent = '🟢';
+    text.textContent = message || 'Firebase Firestore Conectado (Tempo Real Ativo)';
+  } else if (status === 'syncing') {
+    dot.textContent = '🟡';
+    text.textContent = message || 'Sincronizando com o Firebase...';
+  } else {
+    dot.textContent = '⚪';
+    text.textContent = message || 'Conectando ao Firebase...';
   }
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(DEFAULT_CONFIG));
-  return { ...DEFAULT_CONFIG };
 }
 
-function saveConfig() {
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-  syncToCloud();
+// ==========================================================================
+// SINCRONIZAÇÃO EM TEMPO REAL COM O FIREBASE FIRESTORE
+// ==========================================================================
+
+function initFirestoreListeners() {
+  console.log('[Firebase Firestore] Inicializando listeners onSnapshot em tempo real...');
+  updateCloudSyncUI('syncing', 'Conectando ao Firebase Firestore...');
+
+  // 1. Escuta EXCLUSIVA e Contínua da Coleção 'produtos' via onSnapshot
+  onSnapshot(produtosCol, async (snapshot) => {
+    console.log(`[Firebase onSnapshot] Atualização em tempo real recebida: ${snapshot.docs.length} produtos na coleção.`);
+
+    if (snapshot.empty && !isFirestoreInitialized) {
+      isFirestoreInitialized = true;
+      console.log('[Firebase Firestore] Coleção "produtos" vazia. Inserindo catálogo base inicial...');
+      await seedInitialProductsToFirestore(true);
+      return;
+    }
+
+    isFirestoreInitialized = true;
+    const parsedProducts = [];
+
+    // Leitura direta dos documentos em tempo real do Firestore
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = data.id !== undefined ? data.id : docSnap.id;
+      parsedProducts.push({
+        id: id,
+        name: data.name || '',
+        category: data.category || 'Medicamentos',
+        price: Number(data.price) || 0,
+        sale: data.sale ? Number(data.sale) : null,
+        stock: Number(data.stock !== undefined ? data.stock : 0),
+        promo: Boolean(data.promo),
+        image: data.image || FALLBACK_IMAGE,
+        updatedAt: data.updatedAt || null
+      });
+    });
+
+    // Ordenação consistente dos produtos por ID ou Nome
+    parsedProducts.sort((a, b) => {
+      const idA = Number(a.id);
+      const idB = Number(b.id);
+      if (!isNaN(idA) && !isNaN(idB)) return idA - idB;
+      return String(a.name || '').localeCompare(String(b.name || ''));
+    });
+
+    db.products = parsedProducts;
+
+    updateCloudSyncUI('online', `Firebase Conectado (${db.products.length} produtos em tempo real)`);
+
+    const detailsEl = $('#firestore-sync-details');
+    if (detailsEl) {
+      detailsEl.innerHTML = `Sincronização em tempo real ativa. <strong>${db.products.length} produtos</strong> sincronizados diretamente no Firebase.`;
+    }
+
+    // Re-renderização reativa e imediata do DOM para todos os clientes sem refresh
+    renderCategoryCards();
+    renderStore();
+    renderCart();
+    renderStoreHours();
+    if (isAdminLogged()) {
+      renderAdminDashboard();
+    }
+  }, (error) => {
+    console.error('[Firebase Firestore] ERRO no onSnapshot da coleção produtos:', error);
+    updateCloudSyncUI('local', 'Erro na conexão do Firebase Firestore');
+    if (error.code === 'permission-denied') {
+      alert('⚠️ ATENÇÃO: As Regras do Firestore estão bloqueando a leitura/gravação (permission-denied).\n\nAcesse o Firebase Console > Firestore Database > Aba "Regras" e altere para:\nallow read, write: if true;');
+    }
+  });
+
+  // 2. Escutar Documento 'configuracoes/loja' em Tempo Real
+  onSnapshot(configDocRef, (docSnap) => {
+    if (docSnap.exists()) {
+      config = { ...DEFAULT_CONFIG, ...docSnap.data() };
+      applyStoreConfig();
+      renderCategoryCards();
+      renderStore();
+      renderStoreHours();
+      if (isAdminLogged() && currentAdminTab === 'settings') {
+        renderAdminSettings();
+      }
+    } else {
+      setDoc(configDocRef, DEFAULT_CONFIG, { merge: true }).catch(e => console.warn(e));
+    }
+  }, (error) => {
+    console.warn('[Firebase Firestore] Listener de configurações:', error);
+  });
+
+  // 3. Escutar Coleção 'pedidos' em Tempo Real
+  onSnapshot(pedidosCol, (snapshot) => {
+    const orders = [];
+    snapshot.forEach(docSnap => {
+      orders.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    // Ordena por data decrescente
+    orders.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    db.sales = orders;
+
+    if (isAdminLogged() && currentAdminTab === 'sales') {
+      renderAdminSales();
+    }
+  }, (error) => {
+    console.warn('[Firebase Firestore] Listener de pedidos:', error);
+  });
 }
 
-/* ==========================================================================
-   MÓDULO: VITRINE & ATENDIMENTO
-   ========================================================================== */
+// Carga Inicial / Restauração dos Produtos no Firestore com Feedback Imediato
+window.seedInitialProductsToFirestore = async function(silent = false) {
+  try {
+    console.log('[Firebase Firestore] Iniciando gravação de todos os produtos na coleção "produtos"...');
+    updateCloudSyncUI('syncing', 'Gravando produtos base no Firebase...');
+
+    for (const p of SEED_PRODUCTS) {
+      const docRef = doc(dbFirestore, "produtos", String(p.id));
+      await setDoc(docRef, {
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        price: p.price,
+        sale: p.sale,
+        stock: p.stock,
+        promo: p.promo,
+        image: p.image,
+        updatedAt: new Date().toISOString()
+      });
+      console.log(`[Firebase Firestore] ✅ Produto "${p.name}" gravado com sucesso.`);
+    }
+
+    await setDoc(configDocRef, DEFAULT_CONFIG, { merge: true });
+
+    updateCloudSyncUI('online', `Firebase Conectado (${SEED_PRODUCTS.length} produtos)`);
+    console.log('[Firebase Firestore] Sucesso! Todos os produtos foram sincronizados na nuvem.');
+
+    if (!silent) {
+      showToast(`🌱 ${SEED_PRODUCTS.length} produtos gravados no Firebase!`);
+      alert(`✅ Sucesso!\n\n${SEED_PRODUCTS.length} produtos foram gravados diretamente na coleção "produtos" do Firebase Firestore.\n\nVocê já pode conferir a coleção no seu Firebase Console!`);
+    }
+  } catch (err) {
+    console.error('[Firebase Firestore] ERRO ao salvar no Firebase:', err);
+    updateCloudSyncUI('local', 'Erro ao gravar no Firebase');
+    alert(`❌ ERRO NO FIREBASE AO GRAVAR PRODUTOS:\n\nCódigo: ${err.code || 'Desconhecido'}\nMensagem: ${err.message}\n\n👉 Se a mensagem for "Missing or insufficient permissions":\nAcesse o Firebase Console > Firestore Database > Aba "Regras" (Rules) e coloque:\n\nrules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if true;\n    }\n  }\n}`);
+  }
+};
+
+// ==========================================================================
+// MÓDULO: VITRINE & ATENDIMENTO
+// ==========================================================================
 
 function renderStoreHours() {
   const el = $('#store-hours');
@@ -486,7 +497,7 @@ function createProductCard(p) {
               <input class="card-qty-input" type="number" value="1" min="1" max="${p.stock}" readonly aria-label="Quantidade" />
               <button type="button" onclick="changeCardQty(this, 1)" aria-label="Aumentar quantidade">+</button>
             </div>
-            <button class="add-button" type="button" onclick="addCart(${p.id}, this)">
+            <button class="add-button" type="button" onclick="addCart('${p.id}', this)">
               Adicionar
             </button>
           </div>
@@ -507,8 +518,17 @@ function renderStore() {
     clearBtn.style.display = rawSearch.length > 0 ? 'inline-block' : 'none';
   }
 
-  const allProducts = db.products;
+  const productListEl = $('#product-list');
+  const promoListEl = $('#promo-list');
+  const countEl = $('#product-count');
 
+  // Limpeza explícita dos containers antes de renderizar os novos dados do Firestore
+  if (productListEl) productListEl.innerHTML = '';
+  if (promoListEl) promoListEl.innerHTML = '';
+
+  const allProducts = db.products || [];
+
+  // Filtragem dinâmica por categoria e busca
   const filtered = allProducts.filter(p => {
     const matchCategory = currentCategory === 'Todos' || p.category === currentCategory;
     const nameNorm = normalizeStr(p.name);
@@ -517,6 +537,7 @@ function renderStore() {
     return matchCategory && matchSearch;
   });
 
+  // Atualização dos filtros de categoria
   const cats = ['Todos', ...(config.categories || DEFAULT_CATEGORIES)];
   const filtersContainer = $('#category-filters');
   if (filtersContainer) {
@@ -527,34 +548,42 @@ function renderStore() {
     `).join('');
   }
 
-  const productListEl = $('#product-list');
+  // Renderização dinâmica da grade de produtos da vitrine
   if (productListEl) {
     if (filtered.length > 0) {
-      productListEl.innerHTML = filtered.map(createProductCard).join('');
+      let catalogHtml = '';
+      filtered.forEach(p => {
+        catalogHtml += createProductCard(p);
+      });
+      productListEl.innerHTML = catalogHtml;
     } else {
       productListEl.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--muted);">
-          <p style="font-size: 0.95rem; margin-bottom: 10px;">Nenhum produto encontrado para "<strong>${rawSearch}</strong>".</p>
+          <p style="font-size: 0.95rem; margin-bottom: 10px;">Nenhum produto encontrado para "<strong>${rawSearch || currentCategory}</strong>".</p>
           <button class="primary-button" onclick="clearHeaderSearch()" type="button">Ver todos os produtos</button>
         </div>
       `;
     }
   }
 
-  const countEl = $('#product-count');
+  // Contador de produtos em tempo real
   if (countEl) {
     if (rawSearch) {
       countEl.innerHTML = `Busca por "<strong>${rawSearch}</strong>": ${filtered.length} produto${filtered.length !== 1 ? 's' : ''}`;
     } else {
-      countEl.textContent = `${filtered.length} produto${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`;
+      countEl.textContent = `${filtered.length} produto${filtered.length !== 1 ? 's' : ''} disponível${filtered.length !== 1 ? 'is' : ''} na nuvem`;
     }
   }
 
+  // Renderização dinâmica das Promoções do Dia
   const promos = allProducts.filter(p => p.promo && p.stock > 0);
-  const promoListEl = $('#promo-list');
   if (promoListEl) {
     if (promos.length > 0) {
-      promoListEl.innerHTML = promos.map(createProductCard).join('');
+      let promoHtml = '';
+      promos.forEach(p => {
+        promoHtml += createProductCard(p);
+      });
+      promoListEl.innerHTML = promoHtml;
     } else {
       promoListEl.innerHTML = '<p style="color: var(--muted); padding: 10px 0; font-size: 0.82rem;">Nenhuma oferta em destaque hoje.</p>';
     }
@@ -593,9 +622,9 @@ window.changeCardQty = function(button, delta) {
   input.value = updated;
 };
 
-/* ==========================================================================
-   MÓDULO: CARRINHO & FRETE GRÁTIS
-   ========================================================================== */
+// ==========================================================================
+// MÓDULO: CARRINHO & FRETE GRÁTIS
+// ==========================================================================
 
 function animateFlyToCart(button) {
   const card = button.closest('.product-card');
@@ -633,18 +662,18 @@ function pulseCartButton() {
 }
 
 window.addCart = function(id, button) {
-  const product = db.products.find(p => p.id === id);
+  const product = db.products.find(p => String(p.id) === String(id));
   if (!product || product.stock <= 0) return;
 
   const card = button?.closest('.product-card');
   const qtyInput = card?.querySelector('.card-qty-input');
   const qtyToAdd = Math.max(1, Math.min(product.stock, Number(qtyInput?.value || 1)));
 
-  const existing = cart.find(item => item.id === id);
+  const existing = cart.find(item => String(item.id) === String(id));
   if (existing) {
     existing.qty = Math.min(product.stock, existing.qty + qtyToAdd);
   } else {
-    cart.push({ id, qty: qtyToAdd });
+    cart.push({ id: product.id, qty: qtyToAdd });
   }
 
   if (button) animateFlyToCart(button);
@@ -659,7 +688,7 @@ function renderCart() {
   if (cartItemsEl) {
     if (cart.length > 0) {
       cartItemsEl.innerHTML = cart.map(item => {
-        const product = db.products.find(p => p.id === item.id);
+        const product = db.products.find(p => String(p.id) === String(item.id));
         if (!product) return '';
         const price = product.sale || product.price;
         const lineTotal = price * item.qty;
@@ -672,12 +701,12 @@ function renderCart() {
               <strong>${product.name}</strong>
               <small>${money(price)}</small>
               <div class="cart-item-qty">
-                <button type="button" onclick="changeCartQty(${product.id}, -1)">−</button>
+                <button type="button" onclick="changeCartQty('${product.id}', -1)">−</button>
                 <b>${item.qty}</b>
-                <button type="button" onclick="changeCartQty(${product.id}, 1)" ${item.qty >= product.stock ? 'disabled' : ''}>+</button>
+                <button type="button" onclick="changeCartQty('${product.id}', 1)" ${item.qty >= product.stock ? 'disabled' : ''}>+</button>
               </div>
             </div>
-            <button class="remove-btn" type="button" onclick="removeFromCart(${product.id})" aria-label="Remover">×</button>
+            <button class="remove-btn" type="button" onclick="removeFromCart('${product.id}')" aria-label="Remover">×</button>
           </div>
         `;
       }).join('');
@@ -745,13 +774,13 @@ function renderCart() {
 }
 
 window.changeCartQty = function(id, delta) {
-  const item = cart.find(x => x.id === id);
-  const product = db.products.find(x => x.id === id);
+  const item = cart.find(x => String(x.id) === String(id));
+  const product = db.products.find(x => String(x.id) === String(id));
   if (!item || !product) return;
 
   item.qty += delta;
   if (item.qty <= 0) {
-    cart = cart.filter(x => x.id !== id);
+    cart = cart.filter(x => String(x.id) !== String(id));
   } else if (item.qty > product.stock) {
     item.qty = product.stock;
   }
@@ -759,7 +788,7 @@ window.changeCartQty = function(id, delta) {
 };
 
 window.removeFromCart = function(id) {
-  cart = cart.filter(x => x.id !== id);
+  cart = cart.filter(x => String(x.id) !== String(id));
   renderCart();
 };
 
@@ -773,9 +802,9 @@ function closeCart() {
   $('#overlay')?.classList.remove('show');
 }
 
-/* ==========================================================================
-   MÓDULO: ENDEREÇO & CHECKOUT
-   ========================================================================== */
+// ==========================================================================
+// MÓDULO: ENDEREÇO & CHECKOUT COM FIREBASE
+// ==========================================================================
 
 function getSavedAddress() {
   try {
@@ -805,7 +834,7 @@ function prepareCheckoutForm() {
   }
 
   const subtotal = cart.reduce((acc, item) => {
-    const prod = db.products.find(p => p.id === item.id);
+    const prod = db.products.find(p => String(p.id) === String(item.id));
     return acc + ((prod?.sale || prod?.price || 0) * item.qty);
   }, 0);
 
@@ -829,14 +858,14 @@ window.clearSavedAddressForm = function() {
   if (alertEl) alertEl.hidden = true;
 };
 
-function handleCheckoutSubmit(e) {
+window.handleCheckoutSubmit = async function(e) {
   e.preventDefault();
 
   if (cart.length === 0) return;
 
   const stockErrors = [];
   cart.forEach(item => {
-    const prod = db.products.find(p => p.id === item.id);
+    const prod = db.products.find(p => String(p.id) === String(item.id));
     if (!prod || prod.stock < item.qty) {
       stockErrors.push(prod ? prod.name : 'Item indisponível');
     }
@@ -865,11 +894,9 @@ function handleCheckoutSubmit(e) {
 
   let subtotal = 0;
   const orderItems = cart.map(item => {
-    const prod = db.products.find(p => p.id === item.id);
+    const prod = db.products.find(p => String(p.id) === String(item.id));
     const unitPrice = prod.sale || prod.price;
     subtotal += unitPrice * item.qty;
-
-    prod.stock -= item.qty;
 
     return {
       productId: prod.id,
@@ -900,8 +927,23 @@ function handleCheckoutSubmit(e) {
     status: 'Recebido'
   };
 
-  db.sales.unshift(orderRecord);
-  saveDatabase();
+  // 1. Atualizar estoque dos produtos e salvar pedido no Firebase Firestore
+  try {
+    for (const item of cart) {
+      const prod = db.products.find(p => String(p.id) === String(item.id));
+      if (prod) {
+        const newStock = Math.max(0, prod.stock - item.qty);
+        await updateDoc(doc(dbFirestore, "produtos", String(prod.id)), {
+          stock: newStock,
+          updatedAt: new Date().toISOString()
+        });
+      }
+    }
+    await setDoc(doc(dbFirestore, "pedidos", String(orderRecord.id)), orderRecord);
+    showToast('☁️ Pedido registrado com sucesso no Firebase!');
+  } catch (err) {
+    console.error('Erro ao gravar pedido no Firestore:', err);
+  }
 
   const itemLines = orderItems.map(i => `• ${i.qty}x ${i.name} — ${money(i.price * i.qty)}`);
   const whatsappMsg = [
@@ -929,7 +971,7 @@ function handleCheckoutSubmit(e) {
   const whatsappNum = (config.whatsapp || DEFAULT_CONFIG.whatsapp).replace(/\D/g, '');
   const url = `https://wa.me/${whatsappNum}?text=${encodeURIComponent(whatsappMsg)}`;
   window.open(url, '_blank');
-}
+};
 
 window.openDirectWhatsApp = function() {
   const whatsappNum = (config.whatsapp || DEFAULT_CONFIG.whatsapp).replace(/\D/g, '');
@@ -937,9 +979,9 @@ window.openDirectWhatsApp = function() {
   window.open(`https://wa.me/${whatsappNum}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
-/* ==========================================================================
-   MÓDULO: CEP & CONTA DO CLIENTE
-   ========================================================================== */
+// ==========================================================================
+// MÓDULO: CEP & CONTA DO CLIENTE
+// ==========================================================================
 
 function setupLocationAndAccount() {
   $('#open-cep-btn')?.addEventListener('click', () => {
@@ -1059,15 +1101,15 @@ function openCustomerAccount() {
   $('#account-modal')?.showModal();
 }
 
-/* ==========================================================================
-   MÓDULO: PAINEL ADMINISTRATIVO CORPORATIVO
-   ========================================================================== */
+// ==========================================================================
+// MÓDULO: PAINEL ADMINISTRATIVO CORPORATIVO & FIREBASE
+// ==========================================================================
 
 function isAdminLogged() {
   return sessionStorage.getItem(AUTH_KEY) === 'true';
 }
 
-function showAdmin() {
+window.showAdmin = function() {
   $('#storefront').hidden = true;
   $('#admin-area').hidden = false;
 
@@ -1082,15 +1124,15 @@ function showAdmin() {
     $('#login-error').textContent = '';
     setTimeout(() => $('#login-user')?.focus(), 50);
   }
-}
+};
 
-function showStore() {
+window.showStore = function() {
   $('#admin-area').hidden = true;
   $('#storefront').hidden = false;
   location.hash = 'inicio';
-}
+};
 
-function handleAdminLogin(e) {
+window.handleAdminLogin = function(e) {
   e.preventDefault();
   const emailInput = $('#login-user').value.trim().toLowerCase();
   const passwordInput = $('#login-password').value;
@@ -1108,12 +1150,12 @@ function handleAdminLogin(e) {
     $('#login-password').value = '';
     $('#login-password').focus();
   }
-}
+};
 
-function handleAdminLogout() {
+window.handleAdminLogout = function() {
   sessionStorage.removeItem(AUTH_KEY);
   showStore();
-}
+};
 
 function setupAdminTabs() {
   $$('.admin-tab').forEach(btn => {
@@ -1159,7 +1201,7 @@ function updateStockAlertBadge() {
   }
 }
 
-/* ABA 1: CATÁLOGO */
+// ABA 1: CATÁLOGO
 function renderAdminCatalog() {
   const searchTerm = ($('#admin-search')?.value || '').trim().toLowerCase();
   const categoryFilter = $('#admin-category-filter')?.value || 'all';
@@ -1196,6 +1238,7 @@ function renderAdminCatalog() {
 
   const tbody = $('#admin-product-list');
   if (!tbody) return;
+  tbody.innerHTML = '';
 
   if (list.length > 0) {
     tbody.innerHTML = list.map(p => {
@@ -1238,9 +1281,9 @@ function renderAdminCatalog() {
           </td>
           <td class="text-right">
             <div class="table-actions">
-              <button class="action-btn btn-restock" type="button" onclick="quickRestockPrompt(${p.id})">+ Estoque</button>
-              <button class="action-btn btn-edit" type="button" onclick="openProductModal(${p.id})">Editar</button>
-              <button class="action-btn btn-delete" type="button" onclick="deleteProduct(${p.id})">Excluir</button>
+              <button class="action-btn btn-restock" type="button" onclick="quickRestockPrompt('${p.id}')">+ Estoque</button>
+              <button class="action-btn btn-edit" type="button" onclick="openProductModal('${p.id}')">Editar</button>
+              <button class="action-btn btn-delete" type="button" onclick="deleteProduct('${p.id}')">Excluir</button>
             </div>
           </td>
         </tr>
@@ -1257,10 +1300,11 @@ function renderAdminCatalog() {
   }
 }
 
-/* ABA 2: ESTOQUE EM ATENÇÃO */
+// ABA 2: ESTOQUE EM ATENÇÃO
 function renderStockAlerts() {
   const container = $('#stock-alerts-container');
   if (!container) return;
+  container.innerHTML = '';
 
   const threshold = config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold;
   const alertProducts = db.products.filter(p => p.stock <= threshold);
@@ -1291,10 +1335,10 @@ function renderStockAlerts() {
 
           <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted); margin-bottom: 5px;">Reposição de estoque:</div>
           <div class="quick-restock-btns">
-            <button type="button" onclick="addStock(${p.id}, 5)">+5</button>
-            <button type="button" onclick="addStock(${p.id}, 10)">+10</button>
-            <button type="button" onclick="addStock(${p.id}, 20)">+20</button>
-            <button type="button" onclick="quickRestockPrompt(${p.id})">Outro</button>
+            <button type="button" onclick="addStock('${p.id}', 5)">+5</button>
+            <button type="button" onclick="addStock('${p.id}', 10)">+10</button>
+            <button type="button" onclick="addStock('${p.id}', 20)">+20</button>
+            <button type="button" onclick="quickRestockPrompt('${p.id}')">Outro</button>
           </div>
         </div>
       </div>
@@ -1302,31 +1346,50 @@ function renderStockAlerts() {
   }).join('');
 }
 
-window.addStock = function(id, amount) {
-  const prod = db.products.find(p => p.id === id);
+window.addStock = async function(id, amount) {
+  const prod = db.products.find(p => String(p.id) === String(id));
   if (!prod) return;
-  prod.stock += amount;
-  saveDatabase();
-  renderAdminDashboard();
-  renderStore();
+  const newStock = Math.max(0, (prod.stock || 0) + amount);
+
+  try {
+    console.log(`[Firebase Firestore] Atualizando estoque do produto ID ${id} para ${newStock} un....`);
+    await updateDoc(doc(dbFirestore, "produtos", String(id)), {
+      stock: newStock,
+      updatedAt: new Date().toISOString()
+    });
+    console.log(`[Firebase Firestore] ✅ Estoque atualizado com sucesso no Firestore.`);
+    showToast(`📦 Estoque atualizado para ${newStock} un.!`);
+  } catch (err) {
+    console.error('[Firebase Firestore] ❌ Erro ao atualizar estoque no Firestore:', err);
+    alert(`❌ ERRO AO ATUALIZAR ESTOQUE NO FIREBASE:\n\nCódigo: ${err.code || ''}\nMensagem: ${err.message}`);
+  }
 };
 
-window.quickRestockPrompt = function(id) {
-  const prod = db.products.find(p => p.id === id);
+window.quickRestockPrompt = async function(id) {
+  const prod = db.products.find(p => String(p.id) === String(id));
   if (!prod) return;
   const input = prompt(`Repor estoque para "${prod.name}" (Estoque atual: ${prod.stock} un.):\nDigite a quantidade a adicionar:`, '10');
   if (input !== null) {
     const qty = parseInt(input, 10);
     if (!isNaN(qty) && qty > 0) {
-      prod.stock += qty;
-      saveDatabase();
-      renderAdminDashboard();
-      renderStore();
+      const newStock = (prod.stock || 0) + qty;
+      try {
+        console.log(`[Firebase Firestore] Atualizando estoque do produto ID ${id} para ${newStock} un....`);
+        await updateDoc(doc(dbFirestore, "produtos", String(id)), {
+          stock: newStock,
+          updatedAt: new Date().toISOString()
+        });
+        console.log(`[Firebase Firestore] ✅ Estoque atualizado com sucesso no Firestore.`);
+        showToast(`📦 Estoque atualizado para ${newStock} un.!`);
+      } catch (err) {
+        console.error('[Firebase Firestore] ❌ Erro ao atualizar estoque:', err);
+        alert(`❌ ERRO AO ATUALIZAR ESTOQUE NO FIREBASE:\n\nCódigo: ${err.code || ''}\nMensagem: ${err.message}`);
+      }
     }
   }
 };
 
-/* ABA 3: PEDIDOS */
+// ABA 3: PEDIDOS
 function renderAdminSales() {
   const salesMonthEl = $('#sales-month');
   const salesCatEl = $('#sales-category');
@@ -1336,7 +1399,7 @@ function renderAdminSales() {
   const selectedCat = salesCatEl?.value || 'all';
   const selectedProd = salesProdEl?.value || 'all';
 
-  const months = [...new Set(db.sales.map(s => s.date.slice(0, 7)))].sort().reverse();
+  const months = [...new Set(db.sales.map(s => (s.date || '').slice(0, 7)).filter(Boolean))].sort().reverse();
   const cats = config.categories || DEFAULT_CATEGORIES;
 
   if (salesMonthEl) {
@@ -1354,48 +1417,58 @@ function renderAdminSales() {
   if (salesProdEl) {
     salesProdEl.innerHTML = '<option value="all">Todos os produtos</option>' +
       db.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-    salesProdEl.value = db.products.some(p => String(p.id) === selectedProd) ? selectedProd : 'all';
+    salesProdEl.value = selectedProd;
   }
 
   const monthFilter = salesMonthEl?.value || 'all';
   const catFilter = salesCatEl?.value || 'all';
   const prodFilter = salesProdEl?.value || 'all';
 
-  const orders = db.sales.filter(s => monthFilter === 'all' || s.date.startsWith(monthFilter));
-
-  const matchingItems = orders.flatMap(s =>
-    s.items.filter(i =>
-      (catFilter === 'all' || i.category === catFilter) &&
-      (prodFilter === 'all' || String(i.productId) === prodFilter)
-    ).map(i => ({ ...i, orderDate: s.date, orderId: s.id }))
-  );
-
-  const totalRevenue = matchingItems.reduce((acc, i) => acc + (i.qty * i.price), 0);
-  const totalUnits = matchingItems.reduce((acc, i) => acc + i.qty, 0);
-  const totalOrdersCount = new Set(matchingItems.map(i => i.orderId)).size;
-
-  $('#sales-revenue').textContent = money(totalRevenue);
-  $('#sales-orders').textContent = totalOrdersCount;
-  $('#sales-units').textContent = totalUnits;
-
-  const grouped = {};
-  matchingItems.forEach(i => {
-    grouped[i.name] = (grouped[i.name] || 0) + i.qty;
+  const orders = db.sales.filter(s => {
+    if (monthFilter !== 'all' && !(s.date || '').startsWith(monthFilter)) return false;
+    return true;
   });
 
-  const chartEntries = Object.entries(grouped).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  const maxQty = Math.max(...chartEntries.map(x => x[1]), 1);
+  const productCounts = {};
+  let totalRevenue = 0;
+  let totalOrdersCount = 0;
 
-  const chartEl = $('#sales-chart');
+  orders.forEach(order => {
+    totalOrdersCount++;
+    (order.items || []).forEach(item => {
+      if (catFilter !== 'all' && item.category !== catFilter) return;
+      if (prodFilter !== 'all' && String(item.productId) !== prodFilter) return;
+
+      productCounts[item.name] = (productCounts[item.name] || 0) + item.qty;
+      totalRevenue += (item.price * item.qty);
+    });
+  });
+
+  $('#stat-sales-revenue').textContent = money(totalRevenue);
+  $('#stat-sales-orders').textContent = totalOrdersCount;
+  const avgTicket = totalOrdersCount > 0 ? (totalRevenue / totalOrdersCount) : 0;
+  $('#stat-sales-avg').textContent = money(avgTicket);
+
+  const sortedProducts = Object.entries(productCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const chartEl = $('#top-products-chart');
   if (chartEl) {
-    if (chartEntries.length > 0) {
-      chartEl.innerHTML = chartEntries.map(([name, qty]) => `
-        <div class="bar-column">
-          <span class="bar-value">${qty}</span>
-          <div class="bar" style="height: ${Math.max(8, (qty / maxQty) * 130)}px;"></div>
-          <span class="bar-label" title="${name}">${name}</span>
-        </div>
-      `).join('');
+    if (sortedProducts.length > 0) {
+      const maxQty = sortedProducts[0][1] || 1;
+      chartEl.innerHTML = sortedProducts.map(([name, qty]) => {
+        const percent = Math.min(100, Math.max(8, Math.round((qty / maxQty) * 100)));
+        return `
+          <div class="chart-row">
+            <span class="chart-label" title="${name}">${name}</span>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="width: ${percent}%;"></div>
+            </div>
+            <strong class="chart-val">${qty} un.</strong>
+          </div>
+        `;
+      }).join('');
     } else {
       chartEl.innerHTML = '<p style="color: var(--muted); align-self: center; margin: auto; font-size: 0.82rem;">Não há vendas para os filtros selecionados.</p>';
     }
@@ -1405,7 +1478,7 @@ function renderAdminSales() {
   if (!tbody) return;
 
   const relevantOrders = orders.filter(s =>
-    s.items.some(i =>
+    (s.items || []).some(i =>
       (catFilter === 'all' || i.category === catFilter) &&
       (prodFilter === 'all' || String(i.productId) === prodFilter)
     )
@@ -1413,8 +1486,8 @@ function renderAdminSales() {
 
   if (relevantOrders.length > 0) {
     tbody.innerHTML = relevantOrders.map(order => {
-      const dateFormatted = new Date(order.date).toLocaleDateString('pt-BR');
-      const itemsDesc = order.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+      const dateFormatted = order.date ? new Date(order.date).toLocaleDateString('pt-BR') : '—';
+      const itemsDesc = (order.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
       const currentStatus = order.status || 'Recebido';
       const deliveryText = order.isFreeShipping ? 'Grátis' : money(order.deliveryFee || 0);
 
@@ -1427,7 +1500,7 @@ function renderAdminSales() {
           <td>${deliveryText}</td>
           <td><strong>${money(order.total)}</strong></td>
           <td>
-            <select class="order-status-select ${getStatusClass(currentStatus)}" onchange="updateOrderStatus(${order.id}, this.value)">
+            <select class="order-status-select ${getStatusClass(currentStatus)}" onchange="updateOrderStatus('${order.id}', this.value)">
               <option value="Recebido" ${currentStatus === 'Recebido' ? 'selected' : ''}>Recebido</option>
               <option value="Em separação" ${currentStatus === 'Em separação' ? 'selected' : ''}>Em separação</option>
               <option value="Saiu para entrega" ${currentStatus === 'Saiu para entrega' ? 'selected' : ''}>Saiu p/ entrega</option>
@@ -1465,15 +1538,19 @@ function getStatusClass(status) {
   }
 }
 
-window.updateOrderStatus = function(orderId, newStatus) {
-  const order = db.sales.find(s => s.id === orderId);
-  if (!order) return;
-  order.status = newStatus;
-  saveDatabase();
-  renderAdminSales();
+window.updateOrderStatus = async function(orderId, newStatus) {
+  try {
+    await updateDoc(doc(dbFirestore, "pedidos", String(orderId)), {
+      status: newStatus,
+      updatedAt: new Date().toISOString()
+    });
+    showToast(`Status do pedido atualizado para "${newStatus}"!`);
+  } catch (err) {
+    console.error('Erro ao atualizar status do pedido no Firestore:', err);
+  }
 };
 
-/* ABA 4: CONFIGURAÇÕES */
+// ABA 4: CONFIGURAÇÕES
 function renderAdminSettings() {
   $('#cfg-whatsapp').value = config.whatsapp || DEFAULT_CONFIG.whatsapp;
   $('#cfg-delivery-fee').value = config.deliveryFee !== undefined ? config.deliveryFee : DEFAULT_CONFIG.deliveryFee;
@@ -1484,14 +1561,13 @@ function renderAdminSettings() {
   $('#cfg-close-hour').value = config.closeHour !== undefined ? config.closeHour : DEFAULT_CONFIG.closeHour;
   $('#cfg-threshold').value = config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold;
   $('#cfg-admin-email').value = config.adminEmail || DEFAULT_CONFIG.adminEmail;
-  if ($('#cfg-github-token')) $('#cfg-github-token').value = getGitHubToken();
   $('#cfg-admin-password').value = '';
   $('#cfg-admin-password-confirm').value = '';
   $('#cfg-cred-error').textContent = '';
   $('#cfg-cred-success').textContent = '';
 }
 
-window.handleStoreSettingsSubmit = function(e) {
+window.handleStoreSettingsSubmit = async function(e) {
   e.preventDefault();
   config.whatsapp = $('#cfg-whatsapp').value.trim();
   config.deliveryFee = Math.max(0, parseFloat($('#cfg-delivery-fee').value) || 0);
@@ -1502,15 +1578,20 @@ window.handleStoreSettingsSubmit = function(e) {
   config.closeHour = Math.min(23, Math.max(0, parseInt($('#cfg-close-hour').value, 10) || 20));
   config.lowStockThreshold = Math.max(1, parseInt($('#cfg-threshold').value, 10) || 5);
 
-  saveConfig();
+  try {
+    await setDoc(configDocRef, config, { merge: true });
+    showToast('☁️ Configurações da loja salvas no Firebase!');
+  } catch (err) {
+    console.error('Erro ao salvar configurações no Firestore:', err);
+    alert('Erro ao salvar no Firebase: ' + err.message);
+  }
+
   applyStoreConfig();
   renderStoreHours();
   renderCart();
-  alert('Configurações atualizadas com sucesso!');
-  renderAdminDashboard();
 };
 
-window.handleAdminCredentialsSubmit = function(e) {
+window.handleAdminCredentialsSubmit = async function(e) {
   e.preventDefault();
   const email = $('#cfg-admin-email').value.trim().toLowerCase();
   const p1 = $('#cfg-admin-password').value;
@@ -1538,70 +1619,26 @@ window.handleAdminCredentialsSubmit = function(e) {
 
   config.adminEmail = email;
   config.adminPassword = p1;
-  saveConfig();
 
-  sucEl.textContent = 'Login e senha atualizados com sucesso!';
+  try {
+    await setDoc(configDocRef, {
+      adminEmail: email,
+      adminPassword: p1
+    }, { merge: true });
+    sucEl.textContent = 'Login e senha atualizados com sucesso no Firebase!';
+    showToast('🔑 Credenciais atualizadas no Firebase!');
+  } catch (err) {
+    errEl.textContent = 'Erro ao salvar credenciais: ' + err.message;
+  }
+
   $('#cfg-admin-password').value = '';
   $('#cfg-admin-password-confirm').value = '';
 };
 
-window.exportDataBackup = function() {
-  const data = {
-    db: db,
-    config: config,
-    exportDate: new Date().toISOString()
-  };
+// ==========================================================================
+// MODAL DE PRODUTO & OPERAÇÕES FIRESTORE
+// ==========================================================================
 
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `backup_pietrao_${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-window.importDataBackup = function(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (imported.db && Array.isArray(imported.db.products)) {
-        db = imported.db;
-        saveDatabase();
-        if (imported.config) {
-          config = imported.config;
-          saveConfig();
-        }
-        alert('Backup restaurado com sucesso!');
-        location.reload();
-      } else {
-        alert('Arquivo de backup inválido.');
-      }
-    } catch {
-      alert('Erro ao processar o backup.');
-    }
-  };
-  reader.readAsText(file);
-};
-
-window.resetToDefaultData = function() {
-  if (confirm('Deseja restaurar o catálogo para a base de demonstração?')) {
-    db.products = [...SEED_PRODUCTS];
-    config.categories = [...DEFAULT_CATEGORIES];
-    config.deliveryFee = DEFAULT_CONFIG.deliveryFee;
-    config.freeShippingThreshold = DEFAULT_CONFIG.freeShippingThreshold;
-    saveDatabase();
-    saveConfig();
-    alert('Catálogo restaurado com sucesso!');
-    location.reload();
-  }
-};
-
-/* MODAL DE PRODUTO */
 function fillProductModalCategories(selectedCategory = '') {
   const select = $('#p-category');
   if (!select) return;
@@ -1638,7 +1675,7 @@ window.openProductModal = function(id = null) {
   $('#discount-preview-badge').hidden = true;
 
   if (id) {
-    const p = db.products.find(x => x.id === id);
+    const p = db.products.find(x => String(x.id) === String(id));
     if (!p) return;
 
     $('#product-modal-title').textContent = 'Editar Produto';
@@ -1700,10 +1737,11 @@ window.calculateDiscountPreview = function() {
   }
 };
 
-window.handleProductSubmit = function(e) {
-  e.preventDefault();
+window.handleProductSubmit = async function(e) {
+  if (e) e.preventDefault();
 
-  const id = Number($('#product-id').value);
+  const idRaw = $('#product-id').value;
+  const id = idRaw ? (Number(idRaw) || idRaw) : Date.now();
   const name = $('#p-name').value.trim();
   let category = $('#p-category').value;
   const newCategory = $('#p-new-category').value.trim();
@@ -1718,7 +1756,7 @@ window.handleProductSubmit = function(e) {
 
     if (!config.categories.includes(category)) {
       config.categories.push(category);
-      saveConfig();
+      setDoc(configDocRef, { categories: config.categories }, { merge: true }).catch(e => console.warn(e));
       renderCategoryCards();
     }
   }
@@ -1728,55 +1766,265 @@ window.handleProductSubmit = function(e) {
     return;
   }
 
-  const price = Number($('#p-price').value);
+  const price = Number($('#p-price').value) || 0;
   const saleVal = $('#p-sale').value ? Number($('#p-sale').value) : null;
-  const stock = Number($('#p-stock').value);
+  const stock = parseInt($('#p-stock').value, 10) || 0;
   const image = $('#p-image').value.trim() || FALLBACK_IMAGE;
   const promo = $('#p-promo').checked;
 
   const productData = {
-    id: id || Date.now(),
-    name,
-    category,
-    price,
+    id: id,
+    name: name,
+    category: category,
+    price: price,
     sale: saleVal,
-    stock,
-    image,
-    promo
+    stock: stock,
+    image: image,
+    promo: promo,
+    updatedAt: new Date().toISOString()
   };
 
-  if (id) {
-    const index = db.products.findIndex(p => p.id === id);
-    if (index !== -1) {
-      db.products[index] = productData;
-    }
-  } else {
-    db.products.unshift(productData);
+  console.log('[Firebase Firestore] Enviando produto para a coleção "produtos"...', productData);
+  updateCloudSyncUI('syncing', `Enviando "${name}" para o Firebase...`);
+
+  try {
+    const docRef = doc(dbFirestore, "produtos", String(id));
+    await setDoc(docRef, productData);
+
+    console.log('[Firebase Firestore] ✅ SUCESSO! Produto salvo no Firestore com ID:', id);
+    showToast(`☁️ "${name}" salvo no Firebase!`);
+    alert(`✅ Produto "${name}" foi salvo com sucesso no Firebase Firestore!\n\nVerifique seu Firebase Console na coleção "produtos".`);
+    
+    $('#product-modal')?.close();
+  } catch (err) {
+    console.error('[Firebase Firestore] ❌ ERRO ao salvar produto no Firestore:', err);
+    updateCloudSyncUI('local', 'Erro ao salvar no Firebase');
+    alert(`❌ ERRO AO SALVAR PRODUTO NO FIREBASE:\n\nCódigo: ${err.code || 'Desconhecido'}\nMensagem: ${err.message}\n\n👉 Verifique se as Regras do Firestore no Firebase Console estão configuradas como:\nallow read, write: if true;`);
   }
-
-  saveDatabase();
-  $('#product-modal')?.close();
-
-  renderAdminDashboard();
-  renderStore();
-  renderCart();
 };
 
-window.deleteProduct = function(id) {
-  const prod = db.products.find(p => p.id === id);
+window.deleteProduct = async function(id) {
+  const prod = db.products.find(p => String(p.id) === String(id));
   if (!prod) return;
 
-  if (confirm(`Excluir o produto "${prod.name}" do catálogo?`)) {
-    db.products = db.products.filter(p => p.id !== id);
-    cart = cart.filter(x => x.id !== id);
-    saveDatabase();
-    renderAdminDashboard();
-    renderStore();
-    renderCart();
+  if (confirm(`Deseja realmente excluir "${prod.name}" do banco de dados no Firebase?`)) {
+    try {
+      console.log(`[Firebase Firestore] Excluindo produto ID: ${id}...`);
+      updateCloudSyncUI('syncing', 'Excluindo produto no Firebase...');
+      await deleteDoc(doc(dbFirestore, "produtos", String(id)));
+
+      console.log(`[Firebase Firestore] ✅ Produto ID ${id} excluído com sucesso.`);
+      cart = cart.filter(x => String(x.id) !== String(id));
+      renderCart();
+      showToast(`🗑️ "${prod.name}" excluído do Firebase!`);
+      alert(`✅ Produto "${prod.name}" excluído com sucesso do Firebase Firestore!`);
+    } catch (err) {
+      console.error('[Firebase Firestore] ❌ Erro ao excluir no Firestore:', err);
+      alert(`❌ ERRO AO EXCLUIR NO FIREBASE:\n\nCódigo: ${err.code || ''}\nMensagem: ${err.message}`);
+    }
   }
 };
 
-/* INICIALIZAÇÃO */
+// ==========================================================================
+// INTEGRAÇÃO COM PLANILHAS EXCEL (EXPORTAÇÃO & IMPORTAÇÃO EM MASSA)
+// ==========================================================================
+
+function buildWorkbookFromDatabase() {
+  if (typeof XLSX === 'undefined') {
+    throw new Error('Biblioteca SheetJS não carregada.');
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // 1. Aba Produtos
+  const prodHeaders = ["ID", "Nome", "Categoria", "Preco_Regular", "Preco_Promocional", "Estoque", "Promocao_Do_Dia", "Imagem_URL"];
+  const prodRows = (db.products || []).map(p => [
+    p.id,
+    p.name,
+    p.category,
+    p.price,
+    p.sale || "",
+    p.stock,
+    p.promo ? "SIM" : "NAO",
+    p.image || ""
+  ]);
+  const wsProd = XLSX.utils.aoa_to_sheet([prodHeaders, ...prodRows]);
+  XLSX.utils.book_append_sheet(wb, wsProd, "Produtos");
+
+  // 2. Aba Configuracoes
+  const cfgHeaders = ["Chave", "Valor", "Descricao"];
+  const cfgRows = [
+    ["whatsapp", String(config.whatsapp || DEFAULT_CONFIG.whatsapp), "Número do WhatsApp oficial da farmácia com DDD"],
+    ["storeNotice", String(config.storeNotice || DEFAULT_CONFIG.storeNotice), "Frase de destaque na barra do topo do site"],
+    ["lowStockThreshold", String(config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold), "Quantidade para alertar estoque baixo no painel"],
+    ["deliveryFee", String(config.deliveryFee || DEFAULT_CONFIG.deliveryFee), "Taxa padrão de entrega em Reais"],
+    ["freeShippingThreshold", String(config.freeShippingThreshold || DEFAULT_CONFIG.freeShippingThreshold), "Valor mínimo de compra para frete grátis"],
+    ["storeHoursText", String(config.storeHoursText || DEFAULT_CONFIG.storeHoursText), "Texto de horário exibido no cabeçalho"],
+    ["storeStatusMode", String(config.storeStatusMode || DEFAULT_CONFIG.storeStatusMode), "Modo do horário: auto (automático), open (sempre aberto), closed (fechado)"],
+    ["closeHour", String(config.closeHour || DEFAULT_CONFIG.closeHour), "Hora de fechamento no modo automático (0-23)"],
+    ["adminEmail", String(config.adminEmail || DEFAULT_CONFIG.adminEmail), "E-mail de login do painel administrativo"],
+    ["adminPassword", String(config.adminPassword || DEFAULT_CONFIG.adminPassword), "Senha de login do painel administrativo"]
+  ];
+  const wsCfg = XLSX.utils.aoa_to_sheet([cfgHeaders, ...cfgRows]);
+  XLSX.utils.book_append_sheet(wb, wsCfg, "Configuracoes");
+
+  // 3. Aba Categorias
+  const catHeaders = ["Nome_Categoria"];
+  const catRows = (config.categories || DEFAULT_CATEGORIES).map(c => [c]);
+  const wsCat = XLSX.utils.aoa_to_sheet([catHeaders, ...catRows]);
+  XLSX.utils.book_append_sheet(wb, wsCat, "Categorias");
+
+  // 4. Aba Pedidos
+  const pedHeaders = ["ID_Pedido", "Data_Hora", "Itens", "Subtotal", "Taxa_Entrega", "Total", "Forma_Pagamento", "Endereco_Entrega", "Observacoes", "Status"];
+  const pedRows = (db.sales || []).map(s => {
+    const itemsStr = (s.items || []).map(i => `${i.qty}x ${i.name}`).join(", ");
+    return [
+      s.id,
+      s.date ? new Date(s.date).toLocaleString('pt-BR') : "",
+      itemsStr,
+      s.subtotal || 0,
+      s.deliveryFee || 0,
+      s.total || 0,
+      s.payment || "",
+      s.address || "",
+      s.notes || "",
+      s.status || "Recebido"
+    ];
+  });
+  const wsPed = XLSX.utils.aoa_to_sheet([pedHeaders, ...pedRows]);
+  XLSX.utils.book_append_sheet(wb, wsPed, "Pedidos");
+
+  return wb;
+}
+
+window.exportExcelDatabase = function() {
+  try {
+    if (typeof XLSX === 'undefined') {
+      alert('Biblioteca Excel ainda não carregou. Por favor, aguarde.');
+      return;
+    }
+    const wb = buildWorkbookFromDatabase();
+    XLSX.writeFile(wb, "BANCO DE DADOS.xlsx");
+    showToast('📥 BANCO DE DADOS.xlsx exportado com sucesso da nuvem!');
+  } catch (err) {
+    console.error('Erro ao exportar planilha Excel:', err);
+    alert('Erro ao exportar planilha: ' + err.message);
+  }
+};
+
+window.handleExcelFileInput = async function(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  try {
+    const buffer = await file.arrayBuffer();
+    const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+    const prodSheetName = wb.SheetNames.find(n => /produto|products|plan1|sheet1/i.test(n)) || wb.SheetNames[0];
+    const wsProd = wb.Sheets[prodSheetName];
+
+    if (wsProd) {
+      const rawProducts = XLSX.utils.sheet_to_json(wsProd, { defval: "" });
+      if (Array.isArray(rawProducts) && rawProducts.length > 0) {
+        updateCloudSyncUI('syncing', 'Enviando produtos da planilha para o Firebase...');
+        const batch = writeBatch(dbFirestore);
+
+        rawProducts.forEach((row, idx) => {
+          const name = String(row.Nome || row.nome || row.Produto || row.produto || row.Name || row.name || '').trim();
+          if (!name) return;
+
+          const idRaw = row.ID || row.Id || row.id || (idx + 1);
+          const id = Number(idRaw) || Date.now() + idx;
+          const category = String(row.Categoria || row.categoria || row.Category || row.category || 'Medicamentos').trim();
+          const rawPrice = String(row.Preco_Regular || row.Preco || row.preco || row.price || row.Price || '0').replace(/[^\d.,]/g, '').replace(',', '.');
+          const price = parseFloat(rawPrice) || 0;
+          let sale = null;
+          const rawSale = String(row.Preco_Promocional || row.Preco_Promo || row.sale || row.Sale || '').replace(/[^\d.,]/g, '').replace(',', '.');
+          if (rawSale && parseFloat(rawSale) > 0) sale = parseFloat(rawSale);
+          const stock = parseInt(row.Estoque || row.estoque || row.Stock || row.stock || 0) || 0;
+          const promoVal = String(row.Promocao_Do_Dia || row.Promo || row.promo || row.Promocao || '').toLowerCase().trim();
+          const promo = ['sim', 's', 'true', '1', 'yes', 'si'].includes(promoVal);
+          const image = String(row.Imagem_URL || row.Imagem || row.imagem || row.Image || row.image || '').trim() || FALLBACK_IMAGE;
+
+          const docRef = doc(dbFirestore, "produtos", String(id));
+          batch.set(docRef, {
+            id,
+            name,
+            category,
+            price,
+            sale,
+            stock,
+            promo,
+            image,
+            updatedAt: new Date().toISOString()
+          });
+        });
+
+        await batch.commit();
+        showToast(`✅ Planilha importada e sincronizada no Firebase!`);
+      }
+    }
+  } catch (err) {
+    alert('Erro ao carregar o arquivo Excel: ' + err.message);
+  } finally {
+    e.target.value = '';
+  }
+};
+
+window.exportDataBackup = function() {
+  const data = {
+    db: db,
+    config: config,
+    exportDate: new Date().toISOString()
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup_pietrao_firebase_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+window.importDataBackup = async function(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.db && Array.isArray(imported.db.products)) {
+        const batch = writeBatch(dbFirestore);
+        for (const p of imported.db.products) {
+          const docRef = doc(dbFirestore, "produtos", String(p.id));
+          batch.set(docRef, { ...p, updatedAt: new Date().toISOString() });
+        }
+        await batch.commit();
+        if (imported.config) {
+          await setDoc(configDocRef, imported.config, { merge: true });
+        }
+        showToast('Backup JSON restaurado no Firebase com sucesso!');
+      } else {
+        alert('Arquivo de backup inválido.');
+      }
+    } catch (err) {
+      alert('Erro ao processar o backup: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+};
+
+window.resetToDefaultData = function() {
+  if (confirm('Deseja restaurar o catálogo do Firebase para a base padrão?')) {
+    seedInitialProductsToFirestore(false);
+  }
+};
+
+// ==========================================================================
+// INICIALIZAÇÃO GERAL DO APLICATIVO
+// ==========================================================================
+
 document.addEventListener('DOMContentLoaded', () => {
   applyStoreConfig();
   renderCategoryCards();
@@ -1786,17 +2034,15 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCustomerHeader();
   setupLocationAndAccount();
 
-  setInterval(renderStoreHours, 60000);
+  // Iniciar ouvintes em tempo real do Firebase Firestore
+  initFirestoreListeners();
 
-  // Sincronização em Nuvem em Segundo Plano para Celulares e Computadores
-  syncFromCloud(false);
-  setInterval(() => syncFromCloud(false), 20000);
+  setInterval(renderStoreHours, 60000);
 
   $('#open-cart')?.addEventListener('click', openCart);
   $('.close-cart')?.addEventListener('click', closeCart);
   $('#overlay')?.addEventListener('click', closeCart);
 
-  // Busca Inteligente de Produtos
   $('#search')?.addEventListener('input', (e) => {
     const val = e.target.value.trim();
     if (val.length > 0 && currentCategory !== 'Todos') {
