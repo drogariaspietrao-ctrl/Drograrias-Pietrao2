@@ -1047,7 +1047,7 @@
 
     <!-- ==================== MODAL DE PRODUTO ==================== -->
     <dialog id="product-modal" class="modal product-modal">
-      <form id="product-form" onsubmit="handleProductSubmit(event)">
+      <form id="product-form" novalidate onsubmit="handleProductSubmit(event)">
         <button type="button" class="modal-close" data-close="product-modal">×</button>
         <span class="eyebrow">CATÁLOGO</span>
         <h2 id="product-modal-title">Cadastrar Novo Produto</h2>
@@ -1055,13 +1055,13 @@
 
         <div class="form-grid">
           <label class="grid-full">
-            Nome do Medicamento / Produto
-            <input id="p-name" required placeholder="Ex.: Paracetamol 750mg c/ 20 Comprimidos" />
+            Nome do Medicamento / Produto <strong style="color:var(--red);">*</strong>
+            <input id="p-name" placeholder="Ex.: Paracetamol 750mg c/ 20 Comprimidos" />
           </label>
 
           <label>
-            Categoria
-            <select id="p-category" required onchange="handleCategorySelectChange(this)">
+            Categoria <strong style="color:var(--red);">*</strong>
+            <select id="p-category" onchange="handleCategorySelectChange(this)">
               <option value="">Selecione uma categoria</option>
               <!-- Preenchido via JS -->
             </select>
@@ -1107,7 +1107,7 @@
             🏬 Preço e Estoque por Unidade Física
           </label>
           <small style="color: var(--muted); font-size: 0.74rem; display: block; margin-bottom: 8px;">
-            Configure valores e quantidades específicas para cada uma das 4 filiais da rede.
+            Configure valores e quantidades para cada filial. Ao preencher a primeira filial, os valores são aplicados automaticamente para todas.
           </small>
 
           <div class="branch-tabs-header">
@@ -1125,8 +1125,8 @@
             </div>
             <div class="form-grid" style="margin: 0;">
               <label>
-                Preço Regular (R$)
-                <input id="p-price-grande_vitoria" type="number" min="0" step="0.01" required placeholder="0.00" />
+                Preço Regular (R$) <strong style="color:var(--red);">*</strong>
+                <input id="p-price-grande_vitoria" type="number" min="0" step="0.01" placeholder="0.00" />
               </label>
               <label>
                 Preço Promo (R$) <small>(Opcional)</small>
@@ -1134,7 +1134,7 @@
               </label>
               <label>
                 Estoque (unidades)
-                <input id="p-stock-grande_vitoria" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+                <input id="p-stock-grande_vitoria" type="number" min="0" step="1" placeholder="Ex.: 15" />
               </label>
             </div>
             <div class="checkbox-group" style="margin-top: 10px;">
@@ -1154,7 +1154,7 @@
             <div class="form-grid" style="margin: 0;">
               <label>
                 Preço Regular (R$)
-                <input id="p-price-sao_jose" type="number" min="0" step="0.01" required placeholder="0.00" />
+                <input id="p-price-sao_jose" type="number" min="0" step="0.01" placeholder="0.00" />
               </label>
               <label>
                 Preço Promo (R$) <small>(Opcional)</small>
@@ -1162,7 +1162,7 @@
               </label>
               <label>
                 Estoque (unidades)
-                <input id="p-stock-sao_jose" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+                <input id="p-stock-sao_jose" type="number" min="0" step="1" placeholder="Ex.: 15" />
               </label>
             </div>
             <div class="checkbox-group" style="margin-top: 10px;">
@@ -1182,7 +1182,7 @@
             <div class="form-grid" style="margin: 0;">
               <label>
                 Preço Regular (R$)
-                <input id="p-price-novo_aleixo" type="number" min="0" step="0.01" required placeholder="0.00" />
+                <input id="p-price-novo_aleixo" type="number" min="0" step="0.01" placeholder="0.00" />
               </label>
               <label>
                 Preço Promo (R$) <small>(Opcional)</small>
@@ -1190,7 +1190,7 @@
               </label>
               <label>
                 Estoque (unidades)
-                <input id="p-stock-novo_aleixo" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+                <input id="p-stock-novo_aleixo" type="number" min="0" step="1" placeholder="Ex.: 15" />
               </label>
             </div>
             <div class="checkbox-group" style="margin-top: 10px;">
@@ -1210,7 +1210,7 @@
             <div class="form-grid" style="margin: 0;">
               <label>
                 Preço Regular (R$)
-                <input id="p-price-nova_cidade" type="number" min="0" step="0.01" required placeholder="0.00" />
+                <input id="p-price-nova_cidade" type="number" min="0" step="0.01" placeholder="0.00" />
               </label>
               <label>
                 Preço Promo (R$) <small>(Opcional)</small>
@@ -1218,7 +1218,7 @@
               </label>
               <label>
                 Estoque (unidades)
-                <input id="p-stock-nova_cidade" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+                <input id="p-stock-nova_cidade" type="number" min="0" step="1" placeholder="Ex.: 15" />
               </label>
             </div>
             <div class="checkbox-group" style="margin-top: 10px;">
@@ -1244,6 +1244,6 @@
     <script src="xlsx.full.min.js"></script>
     <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>'); }</script>
     <!-- Script Principal como Módulo ES6 com Firebase -->
-    <script type="module" src="app.js?v=5.0"></script>
+    <script type="module" src="app.js?v=5.1"></script>
   </body>
 </html>
