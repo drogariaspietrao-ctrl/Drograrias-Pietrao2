@@ -48,12 +48,49 @@ const produtosCol = collection(dbFirestore, "produtos");
 const configDocRef = doc(dbFirestore, "configuracoes", "loja");
 const pedidosCol = collection(dbFirestore, "pedidos");
 
-// Chaves de Sessão Local (Apenas Login do Usuário e Endereço)
+// Chaves de Sessão Local (Apenas Login do Usuário, Endereço e Filial Escolhida)
 const CONFIG_KEY = 'drogaria_pietrao_config_v2';
 const AUTH_KEY = 'drogaria_pietrao_admin_session';
 const CUSTOMER_KEY = 'drogaria_pietrao_cliente_v2';
 const CUSTOMER_SESSION_KEY = 'drogaria_pietrao_cliente_sessao_v2';
 const CUSTOMER_ADDRESS_KEY = 'drogaria_pietrao_cliente_endereco_v2';
+const BRANCH_STORAGE_KEY = 'drogaria_pietrao_filial';
+
+// 4 Filiais Físicas da Rede
+const DEFAULT_BRANCHES = {
+  grande_vitoria: {
+    id: 'grande_vitoria',
+    name: 'Grande Vitória',
+    shortName: 'Grande Vitória',
+    address: 'Av. Grande Vitória — Manaus / AM',
+    whatsapp: '5592999999991',
+    phone: '(92) 3000-0001'
+  },
+  sao_jose: {
+    id: 'sao_jose',
+    name: 'São José',
+    shortName: 'São José',
+    address: 'Av. Cosme Ferreira, São José — Manaus / AM',
+    whatsapp: '5592999999992',
+    phone: '(92) 3000-0002'
+  },
+  novo_aleixo: {
+    id: 'novo_aleixo',
+    name: 'Novo Aleixo',
+    shortName: 'Novo Aleixo',
+    address: 'Rua Penetração, Novo Aleixo — Manaus / AM',
+    whatsapp: '5592999999993',
+    phone: '(92) 3000-0003'
+  },
+  nova_cidade: {
+    id: 'nova_cidade',
+    name: 'Nova Cidade',
+    shortName: 'Nova Cidade',
+    address: 'Av. Margarita, Nova Cidade — Manaus / AM',
+    whatsapp: '5592999999994',
+    phone: '(92) 3000-0004'
+  }
+};
 
 // Imagem padrão
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80';
@@ -72,7 +109,7 @@ const DEFAULT_CATEGORIES = [
 const DEFAULT_CONFIG = {
   adminEmail: 'admin@pietrao.com',
   adminPassword: 'admin123',
-  whatsapp: '5592999999999',
+  whatsapp: '5592999999991',
   storeNotice: 'Compre com segurança • Frete grátis a partir de R$ 20,00',
   lowStockThreshold: 5,
   deliveryFee: 20.00,
@@ -80,90 +117,155 @@ const DEFAULT_CONFIG = {
   categories: DEFAULT_CATEGORIES,
   storeHoursText: 'Seg. a Sáb., 8h às 20h',
   storeStatusMode: 'auto', // 'auto' | 'open' | 'closed'
-  closeHour: 20
+  closeHour: 20,
+  branches: DEFAULT_BRANCHES
 };
 
-// Catálogo Base de Produtos
+// Catálogo Base de Produtos com Suporte às 4 Filiais
 const SEED_PRODUCTS = [
   {
     id: 1,
     name: 'Paracetamol 750mg c/ 20 Comprimidos',
     category: 'Medicamentos',
+    barcode: '7891234567890',
+    description: 'Analgésico e antitérmico para alívio de dores e febre.',
     price: 15.90,
     sale: 10.90,
     stock: 18,
     promo: true,
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80'
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=500&q=80',
+    branches: {
+      grande_vitoria: { price: 15.90, sale: 10.90, stock: 18, promo: true },
+      sao_jose:       { price: 15.90, sale: 10.90, stock: 12, promo: true },
+      novo_aleixo:    { price: 16.50, sale: null,  stock: 8,  promo: false },
+      nova_cidade:    { price: 15.90, sale: 11.50, stock: 15, promo: true }
+    }
   },
   {
     id: 2,
     name: 'Dipirona Monoidratada 500mg/ml Gotas 20ml',
     category: 'Medicamentos',
+    barcode: '7891234567891',
+    description: 'Medicamento à base de dipirona monoidratada para dor e febre.',
     price: 8.90,
     sale: null,
     stock: 25,
     promo: false,
-    image: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=500&q=80'
+    image: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=500&q=80',
+    branches: {
+      grande_vitoria: { price: 8.90, sale: null, stock: 25, promo: false },
+      sao_jose:       { price: 8.90, sale: null, stock: 20, promo: false },
+      novo_aleixo:    { price: 9.20, sale: null, stock: 14, promo: false },
+      nova_cidade:    { price: 8.90, sale: null, stock: 19, promo: false }
+    }
   },
   {
     id: 3,
     name: 'Vitamina C 1g + Zinco 30 Comprimidos Efervescentes',
     category: 'Vitaminas e Suplementos',
+    barcode: '7891234567892',
+    description: 'Suplemento vitamínico efervescente para fortalecimento da imunidade.',
     price: 32.90,
     sale: 23.90,
     stock: 12,
     promo: true,
-    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=500&q=80'
+    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=500&q=80',
+    branches: {
+      grande_vitoria: { price: 32.90, sale: 23.90, stock: 12, promo: true },
+      sao_jose:       { price: 32.90, sale: 23.90, stock: 9,  promo: true },
+      novo_aleixo:    { price: 33.90, sale: 25.90, stock: 6,  promo: true },
+      nova_cidade:    { price: 32.90, sale: 23.90, stock: 14, promo: true }
+    }
   },
   {
     id: 4,
     name: 'Protetor Solar Facial FPS 50 Toque Seco 50g',
     category: 'Dermocosméticos',
+    barcode: '7891234567893',
+    description: 'Alta proteção solar UVA/UVB com acabamento matte antibrilho.',
     price: 58.90,
     sale: 44.90,
     stock: 4,
     promo: true,
-    image: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&w=500&q=80'
+    image: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&w=500&q=80',
+    branches: {
+      grande_vitoria: { price: 58.90, sale: 44.90, stock: 4, promo: true },
+      sao_jose:       { price: 58.90, sale: 44.90, stock: 6, promo: true },
+      novo_aleixo:    { price: 59.90, sale: 48.00, stock: 3, promo: true },
+      nova_cidade:    { price: 58.90, sale: 44.90, stock: 5, promo: true }
+    }
   },
   {
     id: 5,
     name: 'Shampoo Anticaspa Nutritivo 400ml',
     category: 'Higiene e beleza',
+    barcode: '7891234567894',
+    description: 'Controle efetivo da caspa mantendo os fios hidratados e macios.',
     price: 24.50,
     sale: null,
     stock: 14,
     promo: false,
-    image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&w=500&q=80'
+    image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&w=500&q=80',
+    branches: {
+      grande_vitoria: { price: 24.50, sale: null, stock: 14, promo: false },
+      sao_jose:       { price: 24.50, sale: null, stock: 10, promo: false },
+      novo_aleixo:    { price: 24.50, sale: null, stock: 8,  promo: false },
+      nova_cidade:    { price: 24.50, sale: null, stock: 12, promo: false }
+    }
   },
   {
     id: 6,
     name: 'Álcool em Gel 70% Hidratante 500ml',
     category: 'Higiene e beleza',
+    barcode: '7891234567895',
+    description: 'Higienização e antissepsia rápida com ação hidratante de aloe vera.',
     price: 12.90,
     sale: null,
     stock: 0,
     promo: false,
-    image: 'https://images.unsplash.com/photo-1584483766114-2cea6facdf57?auto=format&fit=crop&w=500&q=80'
+    image: 'https://images.unsplash.com/photo-1584483766114-2cea6facdf57?auto=format&fit=crop&w=500&q=80',
+    branches: {
+      grande_vitoria: { price: 12.90, sale: null, stock: 0,  promo: false },
+      sao_jose:       { price: 12.90, sale: null, stock: 15, promo: false },
+      novo_aleixo:    { price: 12.90, sale: null, stock: 0,  promo: false },
+      nova_cidade:    { price: 12.90, sale: null, stock: 8,  promo: false }
+    }
   },
   {
     id: 7,
     name: 'Fralda Infantil Confort Premium Tamanho G c/ 32 un.',
     category: 'Mundo infantil',
+    barcode: '7891234567896',
+    description: 'Até 12 horas de proteção com barreiras antivazamento duplas.',
     price: 49.90,
     sale: 39.90,
     stock: 7,
     promo: true,
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=500&q=80'
+    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=500&q=80',
+    branches: {
+      grande_vitoria: { price: 49.90, sale: 39.90, stock: 7,  promo: true },
+      sao_jose:       { price: 49.90, sale: 39.90, stock: 11, promo: true },
+      novo_aleixo:    { price: 51.90, sale: null,  stock: 4,  promo: false },
+      nova_cidade:    { price: 49.90, sale: 39.90, stock: 9,  promo: true }
+    }
   },
   {
     id: 8,
     name: 'Kit Primeiros Socorros c/ Esparadrapo, Gaze e Antisséptico',
     category: 'Primeiros socorros',
+    barcode: '7891234567897',
+    description: 'Kit prático e completo para curativos de emergência e pequenos ferimentos.',
     price: 27.90,
     sale: null,
     stock: 3,
     promo: false,
-    image: 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?auto=format&fit=crop&w=500&q=80'
+    image: 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?auto=format&fit=crop&w=500&q=80',
+    branches: {
+      grande_vitoria: { price: 27.90, sale: null, stock: 3, promo: false },
+      sao_jose:       { price: 27.90, sale: null, stock: 5, promo: false },
+      novo_aleixo:    { price: 28.50, sale: null, stock: 2, promo: false },
+      nova_cidade:    { price: 27.90, sale: null, stock: 4, promo: false }
+    }
   }
 ];
 
@@ -173,6 +275,10 @@ let config = { ...DEFAULT_CONFIG };
 let cart = [];
 let currentCategory = 'Todos';
 let currentAdminTab = 'catalog';
+let currentBranch = localStorage.getItem(BRANCH_STORAGE_KEY) || 'grande_vitoria';
+let currentProductBranchTab = 'grande_vitoria';
+let currentAdminBranchFilter = 'all';
+let visibleProductsLimit = 16; // Paginação: 16 produtos por página
 let isFirestoreInitialized = false;
 
 // Utilitários de DOM e Formatação
@@ -187,6 +293,116 @@ function normalizeStr(str) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 }
+
+// Helper: Extrair dados de preço/estoque da filial ativa para um produto
+function getProductBranchData(p, branchId = currentBranch) {
+  if (p && p.branches && p.branches[branchId]) {
+    const b = p.branches[branchId];
+    return {
+      price: Number(b.price) || 0,
+      sale: b.sale !== null && b.sale !== undefined && b.sale !== '' ? Number(b.sale) : null,
+      stock: parseInt(b.stock, 10) || 0,
+      promo: Boolean(b.promo)
+    };
+  }
+  // Fallback para valores legados
+  return {
+    price: Number(p?.price) || 0,
+    sale: p?.sale !== null && p?.sale !== undefined && p?.sale !== '' ? Number(p.sale) : null,
+    stock: parseInt(p?.stock, 10) || 0,
+    promo: Boolean(p?.promo)
+  };
+}
+
+function getBranchName(branchId = currentBranch) {
+  return config.branches?.[branchId]?.name || DEFAULT_BRANCHES[branchId]?.name || 'Grande Vitória';
+}
+
+function getBranchWhatsApp(branchId = currentBranch) {
+  const b = config.branches?.[branchId] || DEFAULT_BRANCHES[branchId];
+  return (b?.whatsapp || config.whatsapp || DEFAULT_CONFIG.whatsapp).replace(/\D/g, '');
+}
+
+function getBranchPhone(branchId = currentBranch) {
+  const b = config.branches?.[branchId] || DEFAULT_BRANCHES[branchId];
+  return b?.phone || '';
+}
+
+function getBranchAddress(branchId = currentBranch) {
+  const b = config.branches?.[branchId] || DEFAULT_BRANCHES[branchId];
+  return b?.address || '';
+}
+
+function updateBranchUI() {
+  const nameEl = $('#header-branch-name');
+  if (nameEl) nameEl.textContent = getBranchName(currentBranch);
+
+  Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+    const btn = $(`#branch-btn-${bId}`);
+    const badge = $(`#badge-branch-${bId}`);
+    if (btn) btn.classList.toggle('active', bId === currentBranch);
+    if (badge) badge.hidden = bId !== currentBranch;
+  });
+}
+
+// Selecionar Filial
+window.selectBranch = function(branchId) {
+  if (!DEFAULT_BRANCHES[branchId]) return;
+  currentBranch = branchId;
+  localStorage.setItem(BRANCH_STORAGE_KEY, branchId);
+  updateBranchUI();
+  $('#branch-modal')?.close();
+  renderStore();
+  renderCart();
+  renderStoreHours();
+  showToast(`🏬 Unidade alterada para: ${getBranchName(branchId)}`);
+};
+
+// Checagem de primeiro acesso para exibir o modal de escolha de filial
+function checkInitialBranchSelection() {
+  const saved = localStorage.getItem(BRANCH_STORAGE_KEY);
+  if (!saved) {
+    setTimeout(() => {
+      $('#branch-modal')?.showModal();
+    }, 450);
+  }
+}
+
+// Paginação / Carregar Mais
+window.loadMoreProducts = function() {
+  visibleProductsLimit += 16;
+  renderStore();
+};
+
+// Alternar Abas de Filiais no Cadastro de Medicamento
+window.switchProductBranchTab = function(branchId) {
+  currentProductBranchTab = branchId;
+  $$('.branch-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.branchTab === branchId);
+  });
+  Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+    const panel = $(`#branch-panel-${bId}`);
+    if (panel) panel.hidden = bId !== branchId;
+  });
+};
+
+// Replicar dados de uma filial para as outras 3
+window.replicateBranchData = function(sourceBranchId) {
+  const price = $(`#p-price-${sourceBranchId}`)?.value || '';
+  const sale = $(`#p-sale-${sourceBranchId}`)?.value || '';
+  const stock = $(`#p-stock-${sourceBranchId}`)?.value || '';
+  const promo = $(`#p-promo-${sourceBranchId}`)?.checked || false;
+
+  Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+    if (bId !== sourceBranchId) {
+      if ($(`#p-price-${bId}`)) $(`#p-price-${bId}`).value = price;
+      if ($(`#p-sale-${bId}`)) $(`#p-sale-${bId}`).value = sale;
+      if ($(`#p-stock-${bId}`)) $(`#p-stock-${bId}`).value = stock;
+      if ($(`#p-promo-${bId}`)) $(`#p-promo-${bId}`).checked = promo;
+    }
+  });
+  showToast(`📋 Valores replicados da unidade ${getBranchName(sourceBranchId)} para todas as filiais!`);
+};
 
 // Visualizador de Senha
 window.togglePasswordVisibility = function(inputId, btn) {
@@ -267,14 +483,32 @@ function initFirestoreListeners() {
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       const id = data.id !== undefined ? data.id : docSnap.id;
+
+      // Monta / Normaliza objeto de filiais
+      let branches = data.branches || {};
+      if (!branches || Object.keys(branches).length === 0) {
+        branches = {};
+        Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+          branches[bId] = {
+            price: Number(data.price) || 0,
+            sale: data.sale !== null && data.sale !== undefined && data.sale !== '' ? Number(data.sale) : null,
+            stock: Number(data.stock !== undefined ? data.stock : 0),
+            promo: Boolean(data.promo)
+          };
+        });
+      }
+
       parsedProducts.push({
         id: id,
         name: data.name || '',
         category: data.category || 'Medicamentos',
-        price: Number(data.price) || 0,
-        sale: data.sale ? Number(data.sale) : null,
-        stock: Number(data.stock !== undefined ? data.stock : 0),
-        promo: Boolean(data.promo),
+        barcode: data.barcode || '',
+        description: data.description || '',
+        branches: branches,
+        price: Number(data.price) || (branches.grande_vitoria ? branches.grande_vitoria.price : 0),
+        sale: data.sale ? Number(data.sale) : (branches.grande_vitoria ? branches.grande_vitoria.sale : null),
+        stock: Number(data.stock !== undefined ? data.stock : (branches.grande_vitoria ? branches.grande_vitoria.stock : 0)),
+        promo: Boolean(data.promo !== undefined ? data.promo : (branches.grande_vitoria ? branches.grande_vitoria.promo : false)),
         image: data.image || FALLBACK_IMAGE,
         updatedAt: data.updatedAt || null
       });
@@ -290,14 +524,15 @@ function initFirestoreListeners() {
 
     db.products = parsedProducts;
 
-    updateCloudSyncUI('online', `Firebase Conectado (${db.products.length} produtos em tempo real)`);
+    updateCloudSyncUI('online', `Firebase Conectado (${db.products.length} produtos em 4 filiais)`);
 
     const detailsEl = $('#firestore-sync-details');
     if (detailsEl) {
-      detailsEl.innerHTML = `Sincronização em tempo real ativa. <strong>${db.products.length} produtos</strong> sincronizados diretamente no Firebase.`;
+      detailsEl.innerHTML = `Sincronização em tempo real ativa. <strong>${db.products.length} produtos</strong> sincronizados para as 4 filiais físicas.`;
     }
 
     // Re-renderização reativa e imediata do DOM para todos os clientes sem refresh
+    updateBranchUI();
     renderCategoryCards();
     renderStore();
     renderCart();
@@ -318,6 +553,7 @@ function initFirestoreListeners() {
     if (docSnap.exists()) {
       config = { ...DEFAULT_CONFIG, ...docSnap.data() };
       applyStoreConfig();
+      updateBranchUI();
       renderCategoryCards();
       renderStore();
       renderStoreHours();
@@ -352,7 +588,7 @@ function initFirestoreListeners() {
 // Carga Inicial / Restauração dos Produtos no Firestore com Feedback Imediato
 window.seedInitialProductsToFirestore = async function(silent = false) {
   try {
-    console.log('[Firebase Firestore] Iniciando gravação de todos os produtos na coleção "produtos"...');
+    console.log('[Firebase Firestore] Iniciando gravação de todos os produtos multi-filiais...');
     updateCloudSyncUI('syncing', 'Gravando produtos base no Firebase...');
 
     for (const p of SEED_PRODUCTS) {
@@ -361,29 +597,32 @@ window.seedInitialProductsToFirestore = async function(silent = false) {
         id: p.id,
         name: p.name,
         category: p.category,
-        price: p.price,
-        sale: p.sale,
-        stock: p.stock,
-        promo: p.promo,
+        barcode: p.barcode || '',
+        description: p.description || '',
+        branches: p.branches,
+        price: p.branches.grande_vitoria.price,
+        sale: p.branches.grande_vitoria.sale,
+        stock: p.branches.grande_vitoria.stock,
+        promo: p.branches.grande_vitoria.promo,
         image: p.image,
         updatedAt: new Date().toISOString()
       });
-      console.log(`[Firebase Firestore] ✅ Produto "${p.name}" gravado com sucesso.`);
+      console.log(`[Firebase Firestore] ✅ Produto "${p.name}" gravado com 4 filiais.`);
     }
 
     await setDoc(configDocRef, DEFAULT_CONFIG, { merge: true });
 
-    updateCloudSyncUI('online', `Firebase Conectado (${SEED_PRODUCTS.length} produtos)`);
+    updateCloudSyncUI('online', `Firebase Conectado (${SEED_PRODUCTS.length} produtos em 4 filiais)`);
     console.log('[Firebase Firestore] Sucesso! Todos os produtos foram sincronizados na nuvem.');
 
     if (!silent) {
-      showToast(`🌱 ${SEED_PRODUCTS.length} produtos gravados no Firebase!`);
-      alert(`✅ Sucesso!\n\n${SEED_PRODUCTS.length} produtos foram gravados diretamente na coleção "produtos" do Firebase Firestore.\n\nVocê já pode conferir a coleção no seu Firebase Console!`);
+      showToast(`🌱 ${SEED_PRODUCTS.length} produtos gravados no Firebase com 4 filiais!`);
+      alert(`✅ Sucesso!\n\n${SEED_PRODUCTS.length} produtos foram gravados diretamente na coleção "produtos" do Firebase Firestore com estoques e preços individuais para as 4 filiais físicas!`);
     }
   } catch (err) {
     console.error('[Firebase Firestore] ERRO ao salvar no Firebase:', err);
     updateCloudSyncUI('local', 'Erro ao gravar no Firebase');
-    alert(`❌ ERRO NO FIREBASE AO GRAVAR PRODUTOS:\n\nCódigo: ${err.code || 'Desconhecido'}\nMensagem: ${err.message}\n\n👉 Se a mensagem for "Missing or insufficient permissions":\nAcesse o Firebase Console > Firestore Database > Aba "Regras" (Rules) e coloque:\n\nrules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if true;\n    }\n  }\n}`);
+    alert(`❌ ERRO NO FIREBASE AO GRAVAR PRODUTOS:\n\nCódigo: ${err.code || 'Desconhecido'}\nMensagem: ${err.message}`);
   }
 };
 
@@ -465,15 +704,16 @@ function renderCategoryCards() {
 }
 
 function createProductCard(p) {
-  const currentPrice = p.sale || p.price;
-  const hasDiscount = p.sale && p.sale < p.price;
-  const discountPercent = hasDiscount ? Math.round(((p.price - p.sale) / p.price) * 100) : 0;
-  const isAvailable = p.stock > 0;
+  const bData = getProductBranchData(p, currentBranch);
+  const currentPrice = (bData.sale && bData.sale < bData.price) ? bData.sale : bData.price;
+  const hasDiscount = bData.sale && bData.sale < bData.price;
+  const discountPercent = hasDiscount ? Math.round(((bData.price - bData.sale) / bData.price) * 100) : 0;
+  const isAvailable = bData.stock > 0;
 
   return `
     <article class="product-card" data-product-id="${p.id}">
       <div class="card-badge-top">
-        ${p.promo ? '<span class="badge-promo">PROMO DO DIA</span>' : ''}
+        ${bData.promo ? '<span class="badge-promo">PROMO DO DIA</span>' : ''}
         ${hasDiscount ? `<span class="badge-discount">-${discountPercent}%</span>` : ''}
       </div>
 
@@ -484,17 +724,18 @@ function createProductCard(p) {
       <div class="product-info">
         <span class="product-category">${p.category}</span>
         <div class="product-name" title="${p.name}">${p.name}</div>
+        ${p.description ? `<p style="font-size: 0.72rem; color: var(--muted); margin: 2px 0 6px 0; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.description}</p>` : ''}
 
         <div class="price-row">
           <strong class="price">${money(currentPrice)}</strong>
-          ${hasDiscount ? `<span class="old-price">${money(p.price)}</span>` : ''}
+          ${hasDiscount ? `<span class="old-price">${money(bData.price)}</span>` : ''}
         </div>
 
         ${isAvailable ? `
           <div class="card-buy">
             <div class="card-quantity" aria-label="Quantidade de ${p.name}">
               <button type="button" onclick="changeCardQty(this, -1)" aria-label="Diminuir quantidade">−</button>
-              <input class="card-qty-input" type="number" value="1" min="1" max="${p.stock}" readonly aria-label="Quantidade" />
+              <input class="card-qty-input" type="number" value="1" min="1" max="${bData.stock}" readonly aria-label="Quantidade" />
               <button type="button" onclick="changeCardQty(this, 1)" aria-label="Aumentar quantidade">+</button>
             </div>
             <button class="add-button" type="button" onclick="addCart('${p.id}', this)">
@@ -502,7 +743,7 @@ function createProductCard(p) {
             </button>
           </div>
         ` : `
-          <span class="sold-out-badge">ESGOTADO</span>
+          <span class="sold-out-badge">ESGOTADO NESSA UNIDADE</span>
         `}
       </div>
     </article>
@@ -533,7 +774,9 @@ function renderStore() {
     const matchCategory = currentCategory === 'Todos' || p.category === currentCategory;
     const nameNorm = normalizeStr(p.name);
     const catNorm = normalizeStr(p.category);
-    const matchSearch = !searchNorm || nameNorm.includes(searchNorm) || catNorm.includes(searchNorm);
+    const barcodeNorm = normalizeStr(p.barcode || '');
+    const descNorm = normalizeStr(p.description || '');
+    const matchSearch = !searchNorm || nameNorm.includes(searchNorm) || catNorm.includes(searchNorm) || barcodeNorm.includes(searchNorm) || descNorm.includes(searchNorm);
     return matchCategory && matchSearch;
   });
 
@@ -548,35 +791,49 @@ function renderStore() {
     `).join('');
   }
 
+  // Paginação progressiva de 16 em 16 produtos
+  const pagedProducts = filtered.slice(0, visibleProductsLimit);
+
   // Renderização dinâmica da grade de produtos da vitrine
   if (productListEl) {
     if (filtered.length > 0) {
       let catalogHtml = '';
-      filtered.forEach(p => {
+      pagedProducts.forEach(p => {
         catalogHtml += createProductCard(p);
       });
       productListEl.innerHTML = catalogHtml;
     } else {
       productListEl.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--muted);">
-          <p style="font-size: 0.95rem; margin-bottom: 10px;">Nenhum produto encontrado para "<strong>${rawSearch || currentCategory}</strong>".</p>
+          <p style="font-size: 0.95rem; margin-bottom: 10px;">Nenhum produto encontrado para "<strong>${rawSearch || currentCategory}</strong>" na unidade ${getBranchName(currentBranch)}.</p>
           <button class="primary-button" onclick="clearHeaderSearch()" type="button">Ver todos os produtos</button>
         </div>
       `;
     }
   }
 
-  // Contador de produtos em tempo real
+  // Controle de exibição do botão de carregar mais
+  const loadMoreEl = $('#load-more-container');
+  if (loadMoreEl) {
+    loadMoreEl.style.display = filtered.length > visibleProductsLimit ? 'block' : 'none';
+  }
+
+  // Contador de produtos em tempo real com indicador da unidade
   if (countEl) {
+    const bName = getBranchName(currentBranch);
     if (rawSearch) {
-      countEl.innerHTML = `Busca por "<strong>${rawSearch}</strong>": ${filtered.length} produto${filtered.length !== 1 ? 's' : ''}`;
+      countEl.innerHTML = `Busca por "<strong>${rawSearch}</strong>": ${filtered.length} produto${filtered.length !== 1 ? 's' : ''} em <strong>${bName}</strong>`;
     } else {
-      countEl.textContent = `${filtered.length} produto${filtered.length !== 1 ? 's' : ''} disponível${filtered.length !== 1 ? 'is' : ''} na nuvem`;
+      countEl.innerHTML = `Exibindo <strong>${pagedProducts.length}</strong> de <strong>${filtered.length}</strong> produtos · Unidade <strong>${bName}</strong>`;
     }
   }
 
-  // Renderização dinâmica das Promoções do Dia
-  const promos = allProducts.filter(p => p.promo && p.stock > 0);
+  // Renderização dinâmica das Ofertas em Destaque da filial ativa
+  const promos = allProducts.filter(p => {
+    const b = getProductBranchData(p, currentBranch);
+    return b.promo && b.stock > 0;
+  });
+
   if (promoListEl) {
     if (promos.length > 0) {
       let promoHtml = '';
@@ -585,7 +842,7 @@ function renderStore() {
       });
       promoListEl.innerHTML = promoHtml;
     } else {
-      promoListEl.innerHTML = '<p style="color: var(--muted); padding: 10px 0; font-size: 0.82rem;">Nenhuma oferta em destaque hoje.</p>';
+      promoListEl.innerHTML = `<p style="color: var(--muted); padding: 10px 0; font-size: 0.82rem;">Nenhuma oferta em destaque na unidade ${getBranchName(currentBranch)} hoje.</p>`;
     }
   }
 }
@@ -593,6 +850,7 @@ function renderStore() {
 window.handleHeaderSearch = function(e) {
   if (e) e.preventDefault();
   currentCategory = 'Todos';
+  visibleProductsLimit = 16;
   renderStore();
   const prodSection = document.getElementById('produtos');
   if (prodSection) {
@@ -604,12 +862,14 @@ window.clearHeaderSearch = function() {
   const searchInput = $('#search');
   if (searchInput) searchInput.value = '';
   currentCategory = 'Todos';
+  visibleProductsLimit = 16;
   renderStore();
   searchInput?.focus();
 };
 
 window.setCategory = function(cat) {
   currentCategory = cat;
+  visibleProductsLimit = 16;
   renderStore();
 };
 
@@ -663,15 +923,20 @@ function pulseCartButton() {
 
 window.addCart = function(id, button) {
   const product = db.products.find(p => String(p.id) === String(id));
-  if (!product || product.stock <= 0) return;
+  if (!product) return;
+  const bData = getProductBranchData(product, currentBranch);
+  if (bData.stock <= 0) {
+    alert(`O produto "${product.name}" está esgotado na unidade ${getBranchName(currentBranch)}.`);
+    return;
+  }
 
   const card = button?.closest('.product-card');
   const qtyInput = card?.querySelector('.card-qty-input');
-  const qtyToAdd = Math.max(1, Math.min(product.stock, Number(qtyInput?.value || 1)));
+  const qtyToAdd = Math.max(1, Math.min(bData.stock, Number(qtyInput?.value || 1)));
 
   const existing = cart.find(item => String(item.id) === String(id));
   if (existing) {
-    existing.qty = Math.min(product.stock, existing.qty + qtyToAdd);
+    existing.qty = Math.min(bData.stock, existing.qty + qtyToAdd);
   } else {
     cart.push({ id: product.id, qty: qtyToAdd });
   }
@@ -690,7 +955,8 @@ function renderCart() {
       cartItemsEl.innerHTML = cart.map(item => {
         const product = db.products.find(p => String(p.id) === String(item.id));
         if (!product) return '';
-        const price = product.sale || product.price;
+        const bData = getProductBranchData(product, currentBranch);
+        const price = (bData.sale && bData.sale < bData.price) ? bData.sale : bData.price;
         const lineTotal = price * item.qty;
         subtotal += lineTotal;
 
@@ -699,11 +965,11 @@ function renderCart() {
             <img src="${product.image || FALLBACK_IMAGE}" alt="" onerror="this.src='${FALLBACK_IMAGE}'" />
             <div>
               <strong>${product.name}</strong>
-              <small>${money(price)}</small>
+              <small>${money(price)} · Unidade ${getBranchName(currentBranch)}</small>
               <div class="cart-item-qty">
                 <button type="button" onclick="changeCartQty('${product.id}', -1)">−</button>
                 <b>${item.qty}</b>
-                <button type="button" onclick="changeCartQty('${product.id}', 1)" ${item.qty >= product.stock ? 'disabled' : ''}>+</button>
+                <button type="button" onclick="changeCartQty('${product.id}', 1)" ${item.qty >= bData.stock ? 'disabled' : ''}>+</button>
               </div>
             </div>
             <button class="remove-btn" type="button" onclick="removeFromCart('${product.id}')" aria-label="Remover">×</button>
@@ -835,7 +1101,10 @@ function prepareCheckoutForm() {
 
   const subtotal = cart.reduce((acc, item) => {
     const prod = db.products.find(p => String(p.id) === String(item.id));
-    return acc + ((prod?.sale || prod?.price || 0) * item.qty);
+    if (!prod) return acc;
+    const bData = getProductBranchData(prod, currentBranch);
+    const unitPrice = (bData.sale && bData.sale < bData.price) ? bData.sale : bData.price;
+    return acc + (unitPrice * item.qty);
   }, 0);
 
   const freeThreshold = Number(config.freeShippingThreshold || DEFAULT_CONFIG.freeShippingThreshold);
@@ -866,13 +1135,18 @@ window.handleCheckoutSubmit = async function(e) {
   const stockErrors = [];
   cart.forEach(item => {
     const prod = db.products.find(p => String(p.id) === String(item.id));
-    if (!prod || prod.stock < item.qty) {
-      stockErrors.push(prod ? prod.name : 'Item indisponível');
+    if (!prod) {
+      stockErrors.push('Item indisponível');
+    } else {
+      const bData = getProductBranchData(prod, currentBranch);
+      if (bData.stock < item.qty) {
+        stockErrors.push(`${prod.name} (Disponível em ${getBranchName(currentBranch)}: ${bData.stock} un.)`);
+      }
     }
   });
 
   if (stockErrors.length > 0) {
-    alert(`Atenção: O item "${stockErrors[0]}" não possui estoque suficiente.`);
+    alert(`Atenção: Estoque insuficiente na unidade ${getBranchName(currentBranch)}:\n\n• ${stockErrors.join('\n• ')}`);
     renderStore();
     renderCart();
     return;
@@ -895,7 +1169,8 @@ window.handleCheckoutSubmit = async function(e) {
   let subtotal = 0;
   const orderItems = cart.map(item => {
     const prod = db.products.find(p => String(p.id) === String(item.id));
-    const unitPrice = prod.sale || prod.price;
+    const bData = getProductBranchData(prod, currentBranch);
+    const unitPrice = (bData.sale && bData.sale < bData.price) ? bData.sale : bData.price;
     subtotal += unitPrice * item.qty;
 
     return {
@@ -903,7 +1178,9 @@ window.handleCheckoutSubmit = async function(e) {
       name: prod.name,
       category: prod.category,
       qty: item.qty,
-      price: unitPrice
+      price: unitPrice,
+      branchId: currentBranch,
+      branchName: getBranchName(currentBranch)
     };
   });
 
@@ -912,10 +1189,14 @@ window.handleCheckoutSubmit = async function(e) {
   const isFreeShipping = subtotal >= freeThreshold;
   const deliveryFeeCharged = isFreeShipping ? 0 : baseDelivery;
   const finalTotal = subtotal + deliveryFeeCharged;
+  const branchName = getBranchName(currentBranch);
+  const branchWa = getBranchWhatsApp(currentBranch);
 
   const orderRecord = {
     id: Date.now(),
     date: new Date().toISOString(),
+    branchId: currentBranch,
+    branchName: branchName,
     items: orderItems,
     subtotal: subtotal,
     deliveryFee: deliveryFeeCharged,
@@ -927,34 +1208,49 @@ window.handleCheckoutSubmit = async function(e) {
     status: 'Recebido'
   };
 
-  // 1. Atualizar estoque dos produtos e salvar pedido no Firebase Firestore
+  // 1. Atualizar estoque da filial correspondente e salvar pedido no Firebase Firestore
   try {
     for (const item of cart) {
       const prod = db.products.find(p => String(p.id) === String(item.id));
       if (prod) {
-        const newStock = Math.max(0, prod.stock - item.qty);
+        const bData = getProductBranchData(prod, currentBranch);
+        const newBranchStock = Math.max(0, bData.stock - item.qty);
+        const updatedBranches = {
+          ...(prod.branches || {}),
+          [currentBranch]: {
+            ...(prod.branches?.[currentBranch] || {}),
+            price: bData.price,
+            sale: bData.sale,
+            promo: bData.promo,
+            stock: newBranchStock
+          }
+        };
+
         await updateDoc(doc(dbFirestore, "produtos", String(prod.id)), {
-          stock: newStock,
+          branches: updatedBranches,
+          stock: newBranchStock, // fallback de compatibilidade
           updatedAt: new Date().toISOString()
         });
       }
     }
     await setDoc(doc(dbFirestore, "pedidos", String(orderRecord.id)), orderRecord);
-    showToast('☁️ Pedido registrado com sucesso no Firebase!');
+    showToast(`☁️ Pedido registrado para a unidade ${branchName}!`);
   } catch (err) {
-    console.error('Erro ao gravar pedido no Firestore:', err);
+    console.error('[Firebase Firestore] Erro ao gravar pedido:', err);
   }
 
   const itemLines = orderItems.map(i => `• ${i.qty}x ${i.name} — ${money(i.price * i.qty)}`);
   const whatsappMsg = [
-    `*NOVO PEDIDO — Drogarias Pietrão*`,
+    `🏬 *NOVO PEDIDO — Drogarias Pietrão*`,
+    `📍 *UNIDADE DE ATENDIMENTO:* ${branchName}`,
+    `🗓️ *Data:* ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
     ``,
-    `*Itens:*`,
+    `*Itens do Pedido:*`,
     itemLines.join('\n'),
     ``,
     `*Subtotal:* ${money(subtotal)}`,
     `*Taxa de Entrega:* ${isFreeShipping ? 'Grátis' : money(deliveryFeeCharged)}`,
-    `*Total: ${money(finalTotal)}*`,
+    `*Total do Pedido: ${money(finalTotal)}*`,
     ``,
     `*Forma de Pagamento:* ${payment}`,
     `*Endereço de Entrega:* ${addressFull}`,
@@ -968,15 +1264,15 @@ window.handleCheckoutSubmit = async function(e) {
   $('#checkout-modal')?.close();
   closeCart();
 
-  const whatsappNum = (config.whatsapp || DEFAULT_CONFIG.whatsapp).replace(/\D/g, '');
-  const url = `https://wa.me/${whatsappNum}?text=${encodeURIComponent(whatsappMsg)}`;
+  const url = `https://wa.me/${branchWa}?text=${encodeURIComponent(whatsappMsg)}`;
   window.open(url, '_blank');
 };
 
 window.openDirectWhatsApp = function() {
-  const whatsappNum = (config.whatsapp || DEFAULT_CONFIG.whatsapp).replace(/\D/g, '');
-  const msg = 'Olá! Gostaria de atendimento na Drogarias Pietrão.';
-  window.open(`https://wa.me/${whatsappNum}?text=${encodeURIComponent(msg)}`, '_blank');
+  const branchWa = getBranchWhatsApp(currentBranch);
+  const branchName = getBranchName(currentBranch);
+  const msg = `Olá! Gostaria de falar com o atendimento da Drogarias Pietrão (Unidade ${branchName}).`;
+  window.open(`https://wa.me/${branchWa}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
 // ==========================================================================
@@ -1206,6 +1502,8 @@ function renderAdminCatalog() {
   const searchTerm = ($('#admin-search')?.value || '').trim().toLowerCase();
   const categoryFilter = $('#admin-category-filter')?.value || 'all';
   const stockFilter = $('#admin-stock-filter')?.value || 'all';
+  const branchFilter = $('#admin-branch-filter')?.value || 'all';
+  currentAdminBranchFilter = branchFilter;
   const threshold = config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold;
 
   const catFilterEl = $('#admin-category-filter');
@@ -1216,23 +1514,40 @@ function renderAdminCatalog() {
   }
 
   const list = db.products.filter(p => {
-    const matchSearch = p.name.toLowerCase().includes(searchTerm) || p.category.toLowerCase().includes(searchTerm);
+    const matchSearch = p.name.toLowerCase().includes(searchTerm) || p.category.toLowerCase().includes(searchTerm) || (p.barcode || '').toLowerCase().includes(searchTerm);
     const matchCat = categoryFilter === 'all' || p.category === categoryFilter;
 
+    let pStock = p.stock || 0;
+    if (branchFilter !== 'all') {
+      const bData = getProductBranchData(p, branchFilter);
+      pStock = bData.stock;
+    } else {
+      // Total de estoque somado das 4 filiais
+      pStock = Object.keys(DEFAULT_BRANCHES).reduce((acc, bId) => {
+        return acc + getProductBranchData(p, bId).stock;
+      }, 0);
+    }
+
     let matchStock = true;
-    if (stockFilter === 'in-stock') matchStock = p.stock > threshold;
-    else if (stockFilter === 'low-stock') matchStock = p.stock > 0 && p.stock <= threshold;
-    else if (stockFilter === 'out-of-stock') matchStock = p.stock === 0;
+    if (stockFilter === 'in-stock') matchStock = pStock > threshold;
+    else if (stockFilter === 'low-stock') matchStock = pStock > 0 && pStock <= threshold;
+    else if (stockFilter === 'out-of-stock') matchStock = pStock === 0;
 
     return matchSearch && matchCat && matchStock;
   });
 
-  const totalStock = db.products.reduce((acc, p) => acc + p.stock, 0);
-  const activePromos = db.products.filter(p => p.promo).length;
-  const lowStockCount = db.products.filter(p => p.stock <= threshold).length;
+  const totalStockAll = db.products.reduce((acc, p) => {
+    return acc + Object.keys(DEFAULT_BRANCHES).reduce((sum, bId) => sum + getProductBranchData(p, bId).stock, 0);
+  }, 0);
+  const activePromos = db.products.filter(p => {
+    return Object.keys(DEFAULT_BRANCHES).some(bId => getProductBranchData(p, bId).promo);
+  }).length;
+  const lowStockCount = db.products.filter(p => {
+    return Object.keys(DEFAULT_BRANCHES).some(bId => getProductBranchData(p, bId).stock <= threshold);
+  }).length;
 
   $('#stat-products').textContent = db.products.length;
-  $('#stat-stock').textContent = `${totalStock} un.`;
+  $('#stat-stock').textContent = `${totalStockAll} un. (Rede)`;
   $('#stat-promos').textContent = activePromos;
   $('#stat-low-stock').textContent = lowStockCount;
 
@@ -1242,18 +1557,24 @@ function renderAdminCatalog() {
 
   if (list.length > 0) {
     tbody.innerHTML = list.map(p => {
-      let stockBadgeClass = 'stock-ok';
-      let stockLabel = `${p.stock} un.`;
-      if (p.stock === 0) {
-        stockBadgeClass = 'stock-empty';
-        stockLabel = 'Esgotado (0)';
-      } else if (p.stock <= threshold) {
-        stockBadgeClass = 'stock-low';
-        stockLabel = `Baixo (${p.stock})`;
+      let bData = getProductBranchData(p, branchFilter === 'all' ? 'grande_vitoria' : branchFilter);
+      let stockDisplay = '';
+
+      if (branchFilter === 'all') {
+        const stockSummary = Object.keys(DEFAULT_BRANCHES).map(bId => {
+          const b = getProductBranchData(p, bId);
+          const isCrit = b.stock <= threshold;
+          return `<span style="display:inline-block; margin-right:6px; font-size:0.7rem; color:${isCrit ? 'var(--red)' : 'var(--ink)'}; font-weight:700;">${DEFAULT_BRANCHES[bId].shortName.split(' ')[0]}: ${b.stock}</span>`;
+        }).join('');
+        stockDisplay = stockSummary;
+      } else {
+        const b = getProductBranchData(p, branchFilter);
+        let badgeClass = b.stock === 0 ? 'stock-empty' : (b.stock <= threshold ? 'stock-low' : 'stock-ok');
+        stockDisplay = `<span class="stock-badge-pill ${badgeClass}">${b.stock} un. (${getBranchName(branchFilter)})</span>`;
       }
 
-      const hasDiscount = p.sale && p.sale < p.price;
-      const discountPercent = hasDiscount ? Math.round(((p.price - p.sale) / p.price) * 100) : 0;
+      const hasDiscount = bData.sale && bData.sale < bData.price;
+      const discountPercent = hasDiscount ? Math.round(((bData.price - bData.sale) / bData.price) * 100) : 0;
 
       return `
         <tr>
@@ -1262,22 +1583,21 @@ function renderAdminCatalog() {
           </td>
           <td>
             <strong>${p.name}</strong>
+            ${p.barcode ? `<br><small style="color:var(--muted); font-size:0.68rem;">EAN: ${p.barcode}</small>` : ''}
           </td>
           <td>${p.category}</td>
-          <td>${money(p.price)}</td>
+          <td>${money(bData.price)}</td>
           <td>
-            ${p.sale ? `
-              <strong style="color: var(--red);">${money(p.sale)}</strong>
+            ${bData.sale ? `
+              <strong style="color: var(--red);">${money(bData.sale)}</strong>
               <small class="promo-tag">-${discountPercent}%</small>
             ` : '—'}
           </td>
           <td>
-            <span class="stock-badge-pill ${stockBadgeClass}">
-              ${stockLabel}
-            </span>
+            ${stockDisplay}
           </td>
           <td>
-            ${p.promo ? '<span class="promo-tag">Promo do Dia</span>' : '<span style="color: var(--muted); font-size: 0.72rem;">Normal</span>'}
+            ${bData.promo ? '<span class="promo-tag">Promoção</span>' : '<span style="color: var(--muted); font-size: 0.72rem;">Normal</span>'}
           </td>
           <td class="text-right">
             <div class="table-actions">
@@ -1307,86 +1627,125 @@ function renderStockAlerts() {
   container.innerHTML = '';
 
   const threshold = config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold;
-  const alertProducts = db.products.filter(p => p.stock <= threshold);
+  
+  // Agrupa alertas por produto e suas respectivas filiais críticas
+  const alerts = [];
+  db.products.forEach(p => {
+    const criticalBranches = [];
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const b = getProductBranchData(p, bId);
+      if (b.stock <= threshold) {
+        criticalBranches.push({ branchId: bId, branchName: getBranchName(bId), stock: b.stock });
+      }
+    });
 
-  if (alertProducts.length === 0) {
+    if (criticalBranches.length > 0) {
+      alerts.push({ product: p, criticalBranches });
+    }
+  });
+
+  if (alerts.length === 0) {
     container.innerHTML = `
       <div class="empty-state-card">
-        <h3>Estoque regularizado</h3>
+        <h3>Estoque regularizado em todas as 4 filiais</h3>
         <p style="margin-top: 4px;">Nenhum produto está com estoque crítico no momento.</p>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = alertProducts.map(p => {
-    const isZero = p.stock === 0;
+  container.innerHTML = alerts.map(a => {
+    const p = a.product;
+
+    const branchesHtml = a.criticalBranches.map(cb => {
+      const isZero = cb.stock === 0;
+      return `
+        <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:6px; padding:8px 12px; margin-top:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="font-size:0.8rem; color:var(--ink);">📍 ${cb.branchName}</strong>
+            <span style="font-size:0.75rem; font-weight:800; color:${isZero ? 'var(--red)' : '#b45309'};">
+              ${isZero ? 'ESGOTADO (0 un.)' : `${cb.stock} un. restantes`}
+            </span>
+          </div>
+          <div class="quick-restock-btns">
+            <button type="button" onclick="addStockBranch('${p.id}', '${cb.branchId}', 5)">+5</button>
+            <button type="button" onclick="addStockBranch('${p.id}', '${cb.branchId}', 10)">+10</button>
+            <button type="button" onclick="addStockBranch('${p.id}', '${cb.branchId}', 20)">+20</button>
+            <button type="button" onclick="quickRestockBranchPrompt('${p.id}', '${cb.branchId}')">Outro</button>
+          </div>
+        </div>
+      `;
+    }).join('');
 
     return `
-      <div class="stock-alert-card ${isZero ? 'critical' : ''}">
+      <div class="stock-alert-card critical">
         <img class="alert-img" src="${p.image || FALLBACK_IMAGE}" alt="" onerror="this.src='${FALLBACK_IMAGE}'" />
-        <div class="alert-content">
+        <div class="alert-content" style="width: 100%;">
           <h3>${p.name}</h3>
           <small>${p.category}</small>
-          
-          <div class="alert-stock-info">
-            Status: ${isZero ? '<span style="color: var(--red);">Esgotado (0 un.)</span>' : `<span>${p.stock} un. restantes</span>`}
-          </div>
-
-          <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted); margin-bottom: 5px;">Reposição de estoque:</div>
-          <div class="quick-restock-btns">
-            <button type="button" onclick="addStock('${p.id}', 5)">+5</button>
-            <button type="button" onclick="addStock('${p.id}', 10)">+10</button>
-            <button type="button" onclick="addStock('${p.id}', 20)">+20</button>
-            <button type="button" onclick="quickRestockPrompt('${p.id}')">Outro</button>
-          </div>
+          <div style="font-size: 0.72rem; font-weight: 700; color: var(--muted); margin-top: 8px;">Unidades que precisam de reposição:</div>
+          ${branchesHtml}
         </div>
       </div>
     `;
   }).join('');
 }
 
-window.addStock = async function(id, amount) {
+window.addStockBranch = async function(id, branchId, amount) {
   const prod = db.products.find(p => String(p.id) === String(id));
   if (!prod) return;
-  const newStock = Math.max(0, (prod.stock || 0) + amount);
+  const bData = getProductBranchData(prod, branchId);
+  const newStock = Math.max(0, bData.stock + amount);
+
+  const updatedBranches = {
+    ...(prod.branches || {}),
+    [branchId]: {
+      ...(prod.branches?.[branchId] || {}),
+      price: bData.price,
+      sale: bData.sale,
+      promo: bData.promo,
+      stock: newStock
+    }
+  };
 
   try {
-    console.log(`[Firebase Firestore] Atualizando estoque do produto ID ${id} para ${newStock} un....`);
+    console.log(`[Firebase Firestore] Atualizando estoque de "${prod.name}" em ${getBranchName(branchId)} para ${newStock} un....`);
     await updateDoc(doc(dbFirestore, "produtos", String(id)), {
-      stock: newStock,
+      branches: updatedBranches,
+      stock: newStock, // compatibilidade
       updatedAt: new Date().toISOString()
     });
-    console.log(`[Firebase Firestore] ✅ Estoque atualizado com sucesso no Firestore.`);
-    showToast(`📦 Estoque atualizado para ${newStock} un.!`);
+    showToast(`📦 Estoque de "${prod.name}" em ${getBranchName(branchId)} atualizado para ${newStock} un.!`);
   } catch (err) {
-    console.error('[Firebase Firestore] ❌ Erro ao atualizar estoque no Firestore:', err);
-    alert(`❌ ERRO AO ATUALIZAR ESTOQUE NO FIREBASE:\n\nCódigo: ${err.code || ''}\nMensagem: ${err.message}`);
+    console.error('[Firebase Firestore] Erro ao atualizar estoque:', err);
+    alert(`❌ ERRO AO ATUALIZAR ESTOQUE: ${err.message}`);
   }
 };
 
-window.quickRestockPrompt = async function(id) {
+window.quickRestockBranchPrompt = async function(id, branchId) {
   const prod = db.products.find(p => String(p.id) === String(id));
   if (!prod) return;
-  const input = prompt(`Repor estoque para "${prod.name}" (Estoque atual: ${prod.stock} un.):\nDigite a quantidade a adicionar:`, '10');
+  const bData = getProductBranchData(prod, branchId);
+  const branchName = getBranchName(branchId);
+  const input = prompt(`Repor estoque para "${prod.name}" na unidade ${branchName} (Estoque atual: ${bData.stock} un.):\nDigite a quantidade a adicionar:`, '10');
   if (input !== null) {
     const qty = parseInt(input, 10);
     if (!isNaN(qty) && qty > 0) {
-      const newStock = (prod.stock || 0) + qty;
-      try {
-        console.log(`[Firebase Firestore] Atualizando estoque do produto ID ${id} para ${newStock} un....`);
-        await updateDoc(doc(dbFirestore, "produtos", String(id)), {
-          stock: newStock,
-          updatedAt: new Date().toISOString()
-        });
-        console.log(`[Firebase Firestore] ✅ Estoque atualizado com sucesso no Firestore.`);
-        showToast(`📦 Estoque atualizado para ${newStock} un.!`);
-      } catch (err) {
-        console.error('[Firebase Firestore] ❌ Erro ao atualizar estoque:', err);
-        alert(`❌ ERRO AO ATUALIZAR ESTOQUE NO FIREBASE:\n\nCódigo: ${err.code || ''}\nMensagem: ${err.message}`);
-      }
+      await addStockBranch(id, branchId, qty);
     }
   }
+};
+
+window.addStock = function(id, amount) {
+  const targetBranch = currentAdminBranchFilter !== 'all' ? currentAdminBranchFilter : currentBranch;
+  addStockBranch(id, targetBranch, amount);
+};
+
+window.quickRestockPrompt = function(id) {
+  const prod = db.products.find(p => String(p.id) === String(id));
+  if (!prod) return;
+  const targetBranch = currentAdminBranchFilter !== 'all' ? currentAdminBranchFilter : currentBranch;
+  quickRestockBranchPrompt(id, targetBranch);
 };
 
 // ABA 3: PEDIDOS
@@ -1560,6 +1919,16 @@ function renderAdminSettings() {
   $('#cfg-store-status').value = config.storeStatusMode || DEFAULT_CONFIG.storeStatusMode;
   $('#cfg-close-hour').value = config.closeHour !== undefined ? config.closeHour : DEFAULT_CONFIG.closeHour;
   $('#cfg-threshold').value = config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold;
+
+  // Preenche dados das 4 filiais físicas
+  const branches = config.branches || DEFAULT_BRANCHES;
+  Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+    const b = branches[bId] || DEFAULT_BRANCHES[bId];
+    if ($(`#cfg-branch-whatsapp-${bId}`)) $(`#cfg-branch-whatsapp-${bId}`).value = b.whatsapp || '';
+    if ($(`#cfg-branch-phone-${bId}`)) $(`#cfg-branch-phone-${bId}`).value = b.phone || '';
+    if ($(`#cfg-branch-address-${bId}`)) $(`#cfg-branch-address-${bId}`).value = b.address || '';
+  });
+
   $('#cfg-admin-email').value = config.adminEmail || DEFAULT_CONFIG.adminEmail;
   $('#cfg-admin-password').value = '';
   $('#cfg-admin-password-confirm').value = '';
@@ -1578,15 +1947,31 @@ window.handleStoreSettingsSubmit = async function(e) {
   config.closeHour = Math.min(23, Math.max(0, parseInt($('#cfg-close-hour').value, 10) || 20));
   config.lowStockThreshold = Math.max(1, parseInt($('#cfg-threshold').value, 10) || 5);
 
+  // Coleta dados das 4 filiais
+  const updatedBranches = {};
+  Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+    updatedBranches[bId] = {
+      id: bId,
+      name: DEFAULT_BRANCHES[bId].name,
+      shortName: DEFAULT_BRANCHES[bId].shortName,
+      whatsapp: $(`#cfg-branch-whatsapp-${bId}`)?.value.trim() || DEFAULT_BRANCHES[bId].whatsapp,
+      phone: $(`#cfg-branch-phone-${bId}`)?.value.trim() || DEFAULT_BRANCHES[bId].phone,
+      address: $(`#cfg-branch-address-${bId}`)?.value.trim() || DEFAULT_BRANCHES[bId].address
+    };
+  });
+  config.branches = updatedBranches;
+
   try {
     await setDoc(configDocRef, config, { merge: true });
-    showToast('☁️ Configurações da loja salvas no Firebase!');
+    showToast('☁️ Configurações da loja e filiais salvas no Firebase!');
+    alert('✅ Sucesso! As configurações e os números de WhatsApp das 4 filiais foram salvos no Firebase.');
   } catch (err) {
     console.error('Erro ao salvar configurações no Firestore:', err);
     alert('Erro ao salvar no Firebase: ' + err.message);
   }
 
   applyStoreConfig();
+  updateBranchUI();
   renderStoreHours();
   renderCart();
 };
@@ -1636,7 +2021,7 @@ window.handleAdminCredentialsSubmit = async function(e) {
 };
 
 // ==========================================================================
-// MODAL DE PRODUTO & OPERAÇÕES FIRESTORE
+// MODAL DE PRODUTO & OPERAÇÕES FIRESTORE (MULTI-FILIAIS)
 // ==========================================================================
 
 function fillProductModalCategories(selectedCategory = '') {
@@ -1670,29 +2055,51 @@ window.handleCategorySelectChange = function(select) {
 
 window.openProductModal = function(id = null) {
   const form = $('#product-form');
+  if (!form) return;
   form.reset();
   $('#product-id').value = id || '';
   $('#discount-preview-badge').hidden = true;
+  switchProductBranchTab('grande_vitoria');
 
   if (id) {
     const p = db.products.find(x => String(x.id) === String(id));
     if (!p) return;
 
-    $('#product-modal-title').textContent = 'Editar Produto';
-    $('#p-name').value = p.name;
-    $('#p-price').value = p.price;
-    $('#p-sale').value = p.sale || '';
-    $('#p-stock').value = p.stock;
+    $('#product-modal-title').textContent = 'Editar Medicamento';
+    $('#p-name').value = p.name || '';
+    $('#p-barcode').value = p.barcode || '';
+    $('#p-description').value = p.description || '';
     $('#p-image').value = p.image || '';
-    $('#p-promo').checked = !!p.promo;
 
     fillProductModalCategories(p.category);
     updateImagePreview(p.image || '');
-    calculateDiscountPreview();
+
+    // Preenche dados específicos de cada filial
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const bData = getProductBranchData(p, bId);
+      const priceInput = $(`#p-price-${bId}`);
+      const saleInput = $(`#p-sale-${bId}`);
+      const stockInput = $(`#p-stock-${bId}`);
+      const promoInput = $(`#p-promo-${bId}`);
+
+      if (priceInput) priceInput.value = bData.price > 0 ? bData.price.toFixed(2) : '';
+      if (saleInput) saleInput.value = (bData.sale !== null && bData.sale !== undefined) ? bData.sale.toFixed(2) : '';
+      if (stockInput) stockInput.value = bData.stock;
+      if (promoInput) promoInput.checked = bData.promo;
+    });
   } else {
-    $('#product-modal-title').textContent = 'Cadastrar Novo Produto';
+    $('#product-modal-title').textContent = 'Cadastrar Novo Medicamento';
+    $('#p-barcode').value = '';
+    $('#p-description').value = '';
     fillProductModalCategories();
     updateImagePreview('');
+
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      if ($(`#p-price-${bId}`)) $(`#p-price-${bId}`).value = '';
+      if ($(`#p-sale-${bId}`)) $(`#p-sale-${bId}`).value = '';
+      if ($(`#p-stock-${bId}`)) $(`#p-stock-${bId}`).value = '10';
+      if ($(`#p-promo-${bId}`)) $(`#p-promo-${bId}`).checked = false;
+    });
   }
 
   $('#product-modal')?.showModal();
@@ -1724,8 +2131,8 @@ window.handleImageFileUpload = function(e) {
 };
 
 window.calculateDiscountPreview = function() {
-  const price = parseFloat($('#p-price').value);
-  const sale = parseFloat($('#p-sale').value);
+  const price = parseFloat($('#p-price-grande_vitoria')?.value || 0);
+  const sale = parseFloat($('#p-sale-grande_vitoria')?.value || 0);
   const badge = $('#discount-preview-badge');
 
   if (badge && price > 0 && sale > 0 && sale < price) {
@@ -1743,6 +2150,8 @@ window.handleProductSubmit = async function(e) {
   const idRaw = $('#product-id').value;
   const id = idRaw ? (Number(idRaw) || idRaw) : Date.now();
   const name = $('#p-name').value.trim();
+  const barcode = $('#p-barcode').value.trim();
+  const description = $('#p-description').value.trim();
   let category = $('#p-category').value;
   const newCategory = $('#p-new-category').value.trim();
 
@@ -1766,40 +2175,57 @@ window.handleProductSubmit = async function(e) {
     return;
   }
 
-  const price = Number($('#p-price').value) || 0;
-  const saleVal = $('#p-sale').value ? Number($('#p-sale').value) : null;
-  const stock = parseInt($('#p-stock').value, 10) || 0;
   const image = $('#p-image').value.trim() || FALLBACK_IMAGE;
-  const promo = $('#p-promo').checked;
+
+  // Coleta dados específicos de cada uma das 4 filiais
+  const branchesData = {};
+  Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+    const bPrice = Number($(`#p-price-${bId}`)?.value) || 0;
+    const bSaleRaw = $(`#p-sale-${bId}`)?.value;
+    const bSale = (bSaleRaw !== '' && bSaleRaw !== null && !isNaN(bSaleRaw)) ? Number(bSaleRaw) : null;
+    const bStock = parseInt($(`#p-stock-${bId}`)?.value, 10) || 0;
+    const bPromo = Boolean($(`#p-promo-${bId}`)?.checked);
+
+    branchesData[bId] = {
+      price: bPrice,
+      sale: bSale,
+      stock: bStock,
+      promo: bPromo
+    };
+  });
 
   const productData = {
     id: id,
     name: name,
     category: category,
-    price: price,
-    sale: saleVal,
-    stock: stock,
+    barcode: barcode,
+    description: description,
     image: image,
-    promo: promo,
+    branches: branchesData,
+    // Valores de fallback raiz para compatibilidade
+    price: branchesData.grande_vitoria.price,
+    sale: branchesData.grande_vitoria.sale,
+    stock: branchesData.grande_vitoria.stock,
+    promo: branchesData.grande_vitoria.promo,
     updatedAt: new Date().toISOString()
   };
 
-  console.log('[Firebase Firestore] Enviando produto para a coleção "produtos"...', productData);
-  updateCloudSyncUI('syncing', `Enviando "${name}" para o Firebase...`);
+  console.log('[Firebase Firestore] Enviando produto multi-filial para a coleção "produtos"...', productData);
+  updateCloudSyncUI('syncing', `Salvando "${name}" no Firebase...`);
 
   try {
     const docRef = doc(dbFirestore, "produtos", String(id));
     await setDoc(docRef, productData);
 
     console.log('[Firebase Firestore] ✅ SUCESSO! Produto salvo no Firestore com ID:', id);
-    showToast(`☁️ "${name}" salvo no Firebase!`);
-    alert(`✅ Produto "${name}" foi salvo com sucesso no Firebase Firestore!\n\nVerifique seu Firebase Console na coleção "produtos".`);
+    showToast(`☁️ "${name}" salvo no Firebase para as 4 filiais!`);
+    alert(`✅ Medicamento "${name}" foi salvo com sucesso no Firebase Firestore com valores individuais para as 4 filiais!`);
     
     $('#product-modal')?.close();
   } catch (err) {
     console.error('[Firebase Firestore] ❌ ERRO ao salvar produto no Firestore:', err);
     updateCloudSyncUI('local', 'Erro ao salvar no Firebase');
-    alert(`❌ ERRO AO SALVAR PRODUTO NO FIREBASE:\n\nCódigo: ${err.code || 'Desconhecido'}\nMensagem: ${err.message}\n\n👉 Verifique se as Regras do Firestore no Firebase Console estão configuradas como:\nallow read, write: if true;`);
+    alert(`❌ ERRO AO SALVAR PRODUTO NO FIREBASE:\n\nCódigo: ${err.code || 'Desconhecido'}\nMensagem: ${err.message}`);
   }
 };
 
@@ -1807,7 +2233,7 @@ window.deleteProduct = async function(id) {
   const prod = db.products.find(p => String(p.id) === String(id));
   if (!prod) return;
 
-  if (confirm(`Deseja realmente excluir "${prod.name}" do banco de dados no Firebase?`)) {
+  if (confirm(`Deseja realmente excluir "${prod.name}" de todas as filiais no Firebase?`)) {
     try {
       console.log(`[Firebase Firestore] Excluindo produto ID: ${id}...`);
       updateCloudSyncUI('syncing', 'Excluindo produto no Firebase...');
@@ -1817,7 +2243,7 @@ window.deleteProduct = async function(id) {
       cart = cart.filter(x => String(x.id) !== String(id));
       renderCart();
       showToast(`🗑️ "${prod.name}" excluído do Firebase!`);
-      alert(`✅ Produto "${prod.name}" excluído com sucesso do Firebase Firestore!`);
+      alert(`✅ Medicamento "${prod.name}" excluído com sucesso do Firebase Firestore!`);
     } catch (err) {
       console.error('[Firebase Firestore] ❌ Erro ao excluir no Firestore:', err);
       alert(`❌ ERRO AO EXCLUIR NO FIREBASE:\n\nCódigo: ${err.code || ''}\nMensagem: ${err.message}`);
@@ -2121,6 +2547,18 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCustomerHeader();
     showCustomerLogin();
   });
+
+  // Botão de seleção de filial no cabeçalho
+  $('#open-branch-btn')?.addEventListener('click', () => {
+    $('#branch-modal')?.showModal();
+  });
+
+  // Filtro de filial no painel administrativo
+  $('#admin-branch-filter')?.addEventListener('change', renderAdminCatalog);
+
+  // Inicialização e checagem de primeiro acesso para escolha de filial
+  updateBranchUI();
+  checkInitialBranchSelection();
 
   setupAdminTabs();
 
