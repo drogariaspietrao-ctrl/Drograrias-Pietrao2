@@ -2147,18 +2147,24 @@ window.calculateDiscountPreview = function() {
 window.handleProductSubmit = async function(e) {
   if (e) e.preventDefault();
 
-  const idRaw = $('#product-id').value;
+  const idRaw = $('#product-id')?.value;
   const id = idRaw ? (Number(idRaw) || idRaw) : Date.now();
-  const name = $('#p-name').value.trim();
-  const barcode = $('#p-barcode').value.trim();
-  const description = $('#p-description').value.trim();
-  let category = $('#p-category').value;
-  const newCategory = $('#p-new-category').value.trim();
+  const name = ($('#p-name')?.value || '').trim();
+  const barcode = ($('#p-barcode')?.value || '').trim();
+  const description = ($('#p-description')?.value || '').trim();
+  let category = $('#p-category')?.value || '';
+  const newCategory = ($('#p-new-category')?.value || '').trim();
+
+  if (!name) {
+    alert('⚠️ Por favor, digite o nome do medicamento / produto.');
+    $('#p-name')?.focus();
+    return;
+  }
 
   if (category === '__NEW__') {
     if (!newCategory) {
-      alert('Digite o nome da nova categoria.');
-      $('#p-new-category').focus();
+      alert('⚠️ Por favor, digite o nome da nova categoria.');
+      $('#p-new-category')?.focus();
       return;
     }
     category = newCategory;
@@ -2171,19 +2177,59 @@ window.handleProductSubmit = async function(e) {
   }
 
   if (!category) {
-    alert('Selecione uma categoria.');
+    alert('⚠️ Por favor, selecione uma categoria.');
+    $('#p-category')?.focus();
     return;
   }
 
-  const image = $('#p-image').value.trim() || FALLBACK_IMAGE;
+  const image = ($('#p-image')?.value || '').trim() || FALLBACK_IMAGE;
 
-  // Coleta dados específicos de cada uma das 4 filiais
+  // Localiza o preço padrão informado em qualquer filial (prioriza Grande Vitória ou a primeira preenchida)
+  let basePrice = 0;
+  let baseSale = null;
+  let baseStock = 10;
+  let basePromo = false;
+
+  for (const bId of Object.keys(DEFAULT_BRANCHES)) {
+    const pVal = parseFloat($(`#p-price-${bId}`)?.value);
+    if (!isNaN(pVal) && pVal > 0) {
+      basePrice = pVal;
+      const sVal = parseFloat($(`#p-sale-${bId}`)?.value);
+      baseSale = (!isNaN(sVal) && sVal > 0) ? sVal : null;
+      const stVal = parseInt($(`#p-stock-${bId}`)?.value, 10);
+      baseStock = !isNaN(stVal) ? stVal : 10;
+      basePromo = Boolean($(`#p-promo-${bId}`)?.checked);
+      break;
+    }
+  }
+
+  if (basePrice <= 0) {
+    alert('⚠️ Por favor, informe o preço regular do produto em ao menos uma das filiais.');
+    switchProductBranchTab('grande_vitoria');
+    $('#p-price-grande_vitoria')?.focus();
+    return;
+  }
+
+  // Coleta dados específicos de cada uma das 4 filiais (com herança inteligente caso não personalizada)
   const branchesData = {};
   Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-    const bPrice = Number($(`#p-price-${bId}`)?.value) || 0;
-    const bSaleRaw = $(`#p-sale-${bId}`)?.value;
-    const bSale = (bSaleRaw !== '' && bSaleRaw !== null && !isNaN(bSaleRaw)) ? Number(bSaleRaw) : null;
-    const bStock = parseInt($(`#p-stock-${bId}`)?.value, 10) || 0;
+    const rawPrice = $(`#p-price-${bId}`)?.value;
+    const parsedPrice = parseFloat(rawPrice);
+    const bPrice = (!isNaN(parsedPrice) && parsedPrice > 0) ? parsedPrice : basePrice;
+
+    const rawSale = $(`#p-sale-${bId}`)?.value;
+    const parsedSale = parseFloat(rawSale);
+    let bSale = null;
+    if (!isNaN(parsedSale) && parsedSale > 0) {
+      bSale = parsedSale;
+    } else if (rawPrice === '' || rawPrice === null || rawPrice === undefined) {
+      bSale = baseSale;
+    }
+
+    const rawStock = $(`#p-stock-${bId}`)?.value;
+    const parsedStock = parseInt(rawStock, 10);
+    const bStock = !isNaN(parsedStock) ? Math.max(0, parsedStock) : baseStock;
+
     const bPromo = Boolean($(`#p-promo-${bId}`)?.checked);
 
     branchesData[bId] = {
@@ -2499,6 +2545,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#logout')?.addEventListener('click', handleAdminLogout);
   $('#login-form')?.addEventListener('submit', handleAdminLogin);
   $('#new-product')?.addEventListener('click', () => openProductModal());
+  $('#product-form')?.addEventListener('submit', handleProductSubmit);
   $('#admin-search')?.addEventListener('input', renderAdminCatalog);
   $('#admin-category-filter')?.addEventListener('change', renderAdminCatalog);
   $('#admin-stock-filter')?.addEventListener('change', renderAdminCatalog);
