@@ -52,8 +52,22 @@ Para acessar o painel do gerente:
 
 ---
 
+## 🔥 Banco de Dados em Nuvem (Firebase Cloud Firestore)
+
+O site utiliza o **Firebase Cloud Firestore** como banco de dados em tempo real na nuvem:
+
+1. **Coleção `produtos`:** Armazena todos os medicamentos, categorias, fotos, preços, promoções e quantidades em estoque.
+2. **Coleção `pedidos`:** Registra os pedidos realizados pelos clientes via checkout com atualização imediata de status.
+3. **Documento `configuracoes/loja`:** Mantém o número oficial do WhatsApp, horário de atendimento, taxas de entrega e frete grátis sincronizados.
+4. **Sincronização em Tempo Real (`onSnapshot`):** Qualquer alteração feita no painel do administrador (pelo celular ou computador) reflete **instantaneamente na vitrine de todos os clientes sem precisar recarregar a página**.
+
+---
+
 ## 📱 Tecnologias Utilizadas
 
 - **HTML5 Semântico:** Modais nativos `<dialog>`, acessibilidade e formulários estruturados.
 - **CSS3 Moderno:** Design System com variáveis HSL/Hex, layout Grid & Flexbox, animações de carrinho e responsividade para celular e computador.
-- **JavaScript (ES6+):** Persistência no `localStorage` e `sessionStorage`, conversão de fotos em Base64 via `FileReader`, cálculo de timezone em tempo real e integração com a API do WhatsApp.
+- **JavaScript (ES6+ Modules):** Integração com o SDK oficial do **Firebase v12** (App, Firestore e Analytics).
+- **SheetJS (`xlsx.full.min.js`):** Exportação e importação em massa via planilhas Excel integradas à nuvem.
+
+
