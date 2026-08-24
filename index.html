@@ -28,6 +28,16 @@
             <span>Drogarias <strong>Pietrão</strong></span>
           </a>
 
+          <!-- Botão Seletor de Filial / Unidade Física -->
+          <button class="branch-button" id="open-branch-btn" type="button" aria-label="Selecionar Unidade de Atendimento">
+            <span class="btn-icon">🏬</span>
+            <div class="btn-text">
+              <small>Sua Unidade:</small>
+              <strong id="header-branch-name">Grande Vitória</strong>
+            </div>
+            <span class="arrow-down">▼</span>
+          </button>
+
           <button class="location-button" id="open-cep-btn" type="button" aria-label="Informar CEP">
             <span class="btn-icon">⌖</span>
             <div class="btn-text">
@@ -173,6 +183,11 @@
 
           <!-- Grade de Produtos -->
           <div class="product-grid" id="product-list"></div>
+
+          <!-- Botão de Paginação / Carregar Mais Produtos -->
+          <div class="load-more-wrap" id="load-more-container" style="display: none;">
+            <button class="load-more-btn" id="load-more-btn" type="button" onclick="loadMoreProducts()">Carregar mais produtos ↓</button>
+          </div>
         </section>
       </main>
 
@@ -452,6 +467,52 @@
       </div>
     </dialog>
 
+    <!-- ==================== MODAL DE ESCOLHA DE FILIAL (4 UNIDADES) ==================== -->
+    <dialog id="branch-modal" class="modal branch-modal">
+      <button type="button" class="modal-close" data-close="branch-modal">×</button>
+      <span class="eyebrow">REDE DROGARIAS PIETRÃO</span>
+      <h2>Selecione a sua Unidade de Atendimento</h2>
+      <p>Escolha a filial mais próxima para visualizar os preços, ofertas e estoque daquela loja:</p>
+
+      <div class="branch-grid">
+        <button type="button" class="branch-card-btn" id="branch-btn-grande_vitoria" onclick="selectBranch('grande_vitoria')">
+          <div class="branch-card-title">
+            <span>Grande Vitória</span>
+            <span class="branch-card-badge" id="badge-branch-grande_vitoria" hidden>Selecionada</span>
+          </div>
+          <span class="branch-card-address">📍 Av. Grande Vitória — Manaus / AM</span>
+          <span class="branch-card-action">Comprar nesta unidade →</span>
+        </button>
+
+        <button type="button" class="branch-card-btn" id="branch-btn-sao_jose" onclick="selectBranch('sao_jose')">
+          <div class="branch-card-title">
+            <span>São José</span>
+            <span class="branch-card-badge" id="badge-branch-sao_jose" hidden>Selecionada</span>
+          </div>
+          <span class="branch-card-address">📍 Av. Cosme Ferreira, São José — Manaus / AM</span>
+          <span class="branch-card-action">Comprar nesta unidade →</span>
+        </button>
+
+        <button type="button" class="branch-card-btn" id="branch-btn-novo_aleixo" onclick="selectBranch('novo_aleixo')">
+          <div class="branch-card-title">
+            <span>Novo Aleixo</span>
+            <span class="branch-card-badge" id="badge-branch-novo_aleixo" hidden>Selecionada</span>
+          </div>
+          <span class="branch-card-address">📍 Rua Penetração, Novo Aleixo — Manaus / AM</span>
+          <span class="branch-card-action">Comprar nesta unidade →</span>
+        </button>
+
+        <button type="button" class="branch-card-btn" id="branch-btn-nova_cidade" onclick="selectBranch('nova_cidade')">
+          <div class="branch-card-title">
+            <span>Nova Cidade</span>
+            <span class="branch-card-badge" id="badge-branch-nova_cidade" hidden>Selecionada</span>
+          </div>
+          <span class="branch-card-address">📍 Av. Margarita, Nova Cidade — Manaus / AM</span>
+          <span class="branch-card-action">Comprar nesta unidade →</span>
+        </button>
+      </div>
+    </dialog>
+
     <!-- ==================== ÁREA ADMINISTRATIVA ==================== -->
     <section id="admin-area" hidden>
       <!-- Tela de Login do Admin -->
@@ -574,6 +635,13 @@
               <div class="table-head">
                 <h2>Lista Geral de Produtos</h2>
                 <div class="table-filters-row">
+                  <select id="admin-branch-filter">
+                    <option value="all">🏬 Todas as 4 Filiais</option>
+                    <option value="grande_vitoria">Grande Vitória</option>
+                    <option value="sao_jose">São José</option>
+                    <option value="novo_aleixo">Novo Aleixo</option>
+                    <option value="nova_cidade">Nova Cidade</option>
+                  </select>
                   <select id="admin-category-filter">
                     <option value="all">Todas as categorias</option>
                   </select>
@@ -781,7 +849,79 @@
                     <small class="field-hint">Produtos com quantidade igual ou menor que este valor entram na lista de atenção.</small>
                   </label>
 
-                  <button class="primary-button wide" type="submit">Salvar Configurações</button>
+                  <!-- Telefones e WhatsApp das 4 Filiais Físicas -->
+                  <div style="margin-top: 18px; border-top: 1px solid #e5e7eb; padding-top: 14px;">
+                    <h3 style="font-size: 0.95rem; margin-bottom: 4px; color: var(--ink);">🏬 WhatsApp e Contato das 4 Filiais Físicas</h3>
+                    <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px;">Os pedidos dos clientes serão direcionados automaticamente para o WhatsApp da unidade que o cliente estiver navegando.</p>
+
+                    <div class="branches-settings-grid">
+                      <div class="branch-setting-card">
+                        <h3>📍 Grande Vitória</h3>
+                        <label>
+                          WhatsApp (DDI + DDD + Número)
+                          <input id="cfg-branch-whatsapp-grande_vitoria" type="text" placeholder="Ex.: 5592999999991" required />
+                        </label>
+                        <label>
+                          Telefone / Contato
+                          <input id="cfg-branch-phone-grande_vitoria" type="text" placeholder="Ex.: (92) 3000-0001" />
+                        </label>
+                        <label>
+                          Endereço / Referência
+                          <input id="cfg-branch-address-grande_vitoria" type="text" placeholder="Av. Grande Vitória" />
+                        </label>
+                      </div>
+
+                      <div class="branch-setting-card">
+                        <h3>📍 São José</h3>
+                        <label>
+                          WhatsApp (DDI + DDD + Número)
+                          <input id="cfg-branch-whatsapp-sao_jose" type="text" placeholder="Ex.: 5592999999992" required />
+                        </label>
+                        <label>
+                          Telefone / Contato
+                          <input id="cfg-branch-phone-sao_jose" type="text" placeholder="Ex.: (92) 3000-0002" />
+                        </label>
+                        <label>
+                          Endereço / Referência
+                          <input id="cfg-branch-address-sao_jose" type="text" placeholder="Av. Cosme Ferreira" />
+                        </label>
+                      </div>
+
+                      <div class="branch-setting-card">
+                        <h3>📍 Novo Aleixo</h3>
+                        <label>
+                          WhatsApp (DDI + DDD + Número)
+                          <input id="cfg-branch-whatsapp-novo_aleixo" type="text" placeholder="Ex.: 5592999999993" required />
+                        </label>
+                        <label>
+                          Telefone / Contato
+                          <input id="cfg-branch-phone-novo_aleixo" type="text" placeholder="Ex.: (92) 3000-0003" />
+                        </label>
+                        <label>
+                          Endereço / Referência
+                          <input id="cfg-branch-address-novo_aleixo" type="text" placeholder="Rua Penetração" />
+                        </label>
+                      </div>
+
+                      <div class="branch-setting-card">
+                        <h3>📍 Nova Cidade</h3>
+                        <label>
+                          WhatsApp (DDI + DDD + Número)
+                          <input id="cfg-branch-whatsapp-nova_cidade" type="text" placeholder="Ex.: 5592999999994" required />
+                        </label>
+                        <label>
+                          Telefone / Contato
+                          <input id="cfg-branch-phone-nova_cidade" type="text" placeholder="Ex.: (92) 3000-0004" />
+                        </label>
+                        <label>
+                          Endereço / Referência
+                          <input id="cfg-branch-address-nova_cidade" type="text" placeholder="Av. Margarita" />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button class="primary-button wide" style="margin-top: 16px;" type="submit">Salvar Configurações da Loja e Filiais</button>
                 </form>
               </div>
 
@@ -915,7 +1055,7 @@
 
         <div class="form-grid">
           <label class="grid-full">
-            Nome do Produto
+            Nome do Medicamento / Produto
             <input id="p-name" required placeholder="Ex.: Paracetamol 750mg c/ 20 Comprimidos" />
           </label>
 
@@ -933,19 +1073,13 @@
           </label>
 
           <label>
-            Preço Regular (R$)
-            <input id="p-price" type="number" min="0" step="0.01" required placeholder="0.00" oninput="calculateDiscountPreview()" />
+            Código de Barras (EAN / GTIN)
+            <input id="p-barcode" placeholder="Ex.: 7891234567890" />
           </label>
 
-          <label>
-            Preço Promocional (R$) <small>(Opcional)</small>
-            <input id="p-sale" type="number" min="0" step="0.01" placeholder="0.00" oninput="calculateDiscountPreview()" />
-            <span id="discount-preview-badge" class="discount-calc-badge" hidden></span>
-          </label>
-
-          <label>
-            Quantidade em Estoque (Sigilo do Administrador)
-            <input id="p-stock" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+          <label class="grid-full">
+            Descrição do Produto / Posologia
+            <textarea id="p-description" rows="2" style="width: 100%; border: 1px solid #d7d7d7; border-radius: var(--radius-sm); padding: 8px 12px; font-family: inherit; font-size: 0.85rem;" placeholder="Ex.: Analgésico e antitérmico indicado para o alívio de dores e febre."></textarea>
           </label>
         </div>
 
@@ -967,15 +1101,142 @@
           </div>
         </div>
 
-        <!-- Opções de Destaque -->
-        <div class="checkbox-group">
-          <label class="checkbox-label">
-            <input id="p-promo" type="checkbox" />
-            <span>Marcar como <strong>Promoção do Dia</strong> (Exibido no carrossel de ofertas)</span>
+        <!-- SEÇÃO MULTI-FILIAIS: PREÇOS, ESTOQUE E PROMOÇÕES POR UNIDADE -->
+        <div style="margin-top: 14px;">
+          <label style="font-weight: 800; font-size: 0.88rem; color: var(--ink); display: block; margin-bottom: 2px;">
+            🏬 Preço e Estoque por Unidade Física
           </label>
+          <small style="color: var(--muted); font-size: 0.74rem; display: block; margin-bottom: 8px;">
+            Configure valores e quantidades específicas para cada uma das 4 filiais da rede.
+          </small>
+
+          <div class="branch-tabs-header">
+            <button type="button" class="branch-tab-btn active" data-branch-tab="grande_vitoria" onclick="switchProductBranchTab('grande_vitoria')">📍 Grande Vitória</button>
+            <button type="button" class="branch-tab-btn" data-branch-tab="sao_jose" onclick="switchProductBranchTab('sao_jose')">📍 São José</button>
+            <button type="button" class="branch-tab-btn" data-branch-tab="novo_aleixo" onclick="switchProductBranchTab('novo_aleixo')">📍 Novo Aleixo</button>
+            <button type="button" class="branch-tab-btn" data-branch-tab="nova_cidade" onclick="switchProductBranchTab('nova_cidade')">📍 Nova Cidade</button>
+          </div>
+
+          <!-- Painel Filial 1: Grande Vitória -->
+          <div class="branch-panel" id="branch-panel-grande_vitoria">
+            <div class="branch-panel-title">
+              <span>Unidade: Grande Vitória</span>
+              <button type="button" class="replicate-branch-btn" onclick="replicateBranchData('grande_vitoria')">📋 Replicar para as outras 3 filiais</button>
+            </div>
+            <div class="form-grid" style="margin: 0;">
+              <label>
+                Preço Regular (R$)
+                <input id="p-price-grande_vitoria" type="number" min="0" step="0.01" required placeholder="0.00" />
+              </label>
+              <label>
+                Preço Promo (R$) <small>(Opcional)</small>
+                <input id="p-sale-grande_vitoria" type="number" min="0" step="0.01" placeholder="0.00" />
+              </label>
+              <label>
+                Estoque (unidades)
+                <input id="p-stock-grande_vitoria" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+              </label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 10px;">
+              <label class="checkbox-label">
+                <input id="p-promo-grande_vitoria" type="checkbox" />
+                <span>Oferta em Destaque nesta unidade (Carrossel)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Painel Filial 2: São José -->
+          <div class="branch-panel" id="branch-panel-sao_jose" hidden>
+            <div class="branch-panel-title">
+              <span>Unidade: São José</span>
+              <button type="button" class="replicate-branch-btn" onclick="replicateBranchData('sao_jose')">📋 Replicar para as outras 3 filiais</button>
+            </div>
+            <div class="form-grid" style="margin: 0;">
+              <label>
+                Preço Regular (R$)
+                <input id="p-price-sao_jose" type="number" min="0" step="0.01" required placeholder="0.00" />
+              </label>
+              <label>
+                Preço Promo (R$) <small>(Opcional)</small>
+                <input id="p-sale-sao_jose" type="number" min="0" step="0.01" placeholder="0.00" />
+              </label>
+              <label>
+                Estoque (unidades)
+                <input id="p-stock-sao_jose" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+              </label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 10px;">
+              <label class="checkbox-label">
+                <input id="p-promo-sao_jose" type="checkbox" />
+                <span>Oferta em Destaque nesta unidade (Carrossel)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Painel Filial 3: Novo Aleixo -->
+          <div class="branch-panel" id="branch-panel-novo_aleixo" hidden>
+            <div class="branch-panel-title">
+              <span>Unidade: Novo Aleixo</span>
+              <button type="button" class="replicate-branch-btn" onclick="replicateBranchData('novo_aleixo')">📋 Replicar para as outras 3 filiais</button>
+            </div>
+            <div class="form-grid" style="margin: 0;">
+              <label>
+                Preço Regular (R$)
+                <input id="p-price-novo_aleixo" type="number" min="0" step="0.01" required placeholder="0.00" />
+              </label>
+              <label>
+                Preço Promo (R$) <small>(Opcional)</small>
+                <input id="p-sale-novo_aleixo" type="number" min="0" step="0.01" placeholder="0.00" />
+              </label>
+              <label>
+                Estoque (unidades)
+                <input id="p-stock-novo_aleixo" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+              </label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 10px;">
+              <label class="checkbox-label">
+                <input id="p-promo-novo_aleixo" type="checkbox" />
+                <span>Oferta em Destaque nesta unidade (Carrossel)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Painel Filial 4: Nova Cidade -->
+          <div class="branch-panel" id="branch-panel-nova_cidade" hidden>
+            <div class="branch-panel-title">
+              <span>Unidade: Nova Cidade</span>
+              <button type="button" class="replicate-branch-btn" onclick="replicateBranchData('nova_cidade')">📋 Replicar para as outras 3 filiais</button>
+            </div>
+            <div class="form-grid" style="margin: 0;">
+              <label>
+                Preço Regular (R$)
+                <input id="p-price-nova_cidade" type="number" min="0" step="0.01" required placeholder="0.00" />
+              </label>
+              <label>
+                Preço Promo (R$) <small>(Opcional)</small>
+                <input id="p-sale-nova_cidade" type="number" min="0" step="0.01" placeholder="0.00" />
+              </label>
+              <label>
+                Estoque (unidades)
+                <input id="p-stock-nova_cidade" type="number" min="0" step="1" required placeholder="Ex.: 15" />
+              </label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 10px;">
+              <label class="checkbox-label">
+                <input id="p-promo-nova_cidade" type="checkbox" />
+                <span>Oferta em Destaque nesta unidade (Carrossel)</span>
+              </label>
+            </div>
+          </div>
         </div>
 
-        <button class="primary-button wide" type="submit">Salvar Produto</button>
+        <!-- Campos ocultos de fallback para compatibilidade -->
+        <input type="hidden" id="p-price" />
+        <input type="hidden" id="p-sale" />
+        <input type="hidden" id="p-stock" />
+        <input type="hidden" id="p-promo" />
+
+        <button class="primary-button wide" style="margin-top: 20px;" type="submit">Salvar Medicamento nas 4 Filiais</button>
       </form>
     </dialog>
 
@@ -983,6 +1244,6 @@
     <script src="xlsx.full.min.js"></script>
     <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>'); }</script>
     <!-- Script Principal como Módulo ES6 com Firebase -->
-    <script type="module" src="app.js?v=4.3"></script>
+    <script type="module" src="app.js?v=5.0"></script>
   </body>
 </html>
