@@ -1047,7 +1047,7 @@
 
     <!-- ==================== MODAL DE PRODUTO ==================== -->
     <dialog id="product-modal" class="modal product-modal">
-      <form id="product-form" novalidate onsubmit="handleProductSubmit(event)">
+      <form id="product-form" novalidate>
         <button type="button" class="modal-close" data-close="product-modal">×</button>
         <span class="eyebrow">CATÁLOGO</span>
         <h2 id="product-modal-title">Cadastrar Novo Medicamento</h2>
@@ -1091,106 +1091,66 @@
           </div>
         </div>
 
-        <!-- SEÇÃO DE PREÇO, ESTOQUE E DESTINO DAS FILIAIS -->
+        <!-- SEÇÃO DE PREÇO, ESTOQUE E UNIDADES / BAIRROS -->
         <div style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 14px;">
-          <h3 style="font-size: 0.92rem; margin-bottom: 8px; color: var(--ink);">💰 Preço e Estoque do Medicamento</h3>
-          
-          <div class="form-grid" style="margin: 0;">
-            <label>
-              Preço Regular (R$) <strong style="color:var(--red);">*</strong>
-              <input id="p-main-price" type="number" min="0" step="0.01" placeholder="0.00" oninput="syncMainPriceToBranches(this.value)" />
-            </label>
-            <label>
-              Preço Promocional (R$) <small>(Opcional)</small>
-              <input id="p-main-sale" type="number" min="0" step="0.01" placeholder="0.00" oninput="syncMainSaleToBranches(this.value)" />
-            </label>
-            <label>
-              Estoque (unidades) <strong style="color:var(--red);">*</strong>
-              <input id="p-main-stock" type="number" min="0" step="1" placeholder="10" value="10" oninput="syncMainStockToBranches(this.value)" />
-            </label>
-          </div>
+          <label style="font-weight: 800; font-size: 0.88rem; color: var(--ink); display: block; margin-bottom: 2px;">
+            🏬 Unidades Físicas (Bairros) <strong style="color:var(--red);">*</strong>
+          </label>
+          <small style="color: var(--muted); font-size: 0.74rem; display: block; margin-bottom: 10px;">
+            Selecione as unidades onde este medicamento estará disponível para venda:
+          </small>
 
-          <div class="checkbox-group" style="margin-top: 8px;">
-            <label class="checkbox-label">
-              <input id="p-main-promo" type="checkbox" onchange="syncMainPromoToBranches(this.checked)" />
-              <span>Destacar na Vitrine (Promoção do Dia / Carrossel)</span>
-            </label>
-          </div>
+          <!-- Dropdown Suspenso Interativo de Bairros -->
+          <div class="branch-dropdown-wrapper" id="branch-dropdown-wrapper">
+            <button type="button" class="branch-dropdown-trigger" id="branch-dropdown-trigger" onclick="toggleBranchDropdown()">
+              <span id="branch-dropdown-summary">📍 4 unidades selecionadas</span>
+              <span class="branch-dropdown-arrow" id="branch-dropdown-arrow">▼</span>
+            </button>
 
-          <div style="margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
-            <div style="font-weight: 700; font-size: 0.85rem; color: var(--ink); margin-bottom: 8px;">
-              🏬 Disponibilidade nas Filiais Físicas:
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-              <label class="radio-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem; cursor: pointer;">
-                <input type="radio" name="p-branch-mode" id="branch-mode-all" value="all" checked onchange="toggleBranchMode('all')" />
-                <strong>Disponível em todas as 4 filiais</strong> (mesmo preço e estoque)
-              </label>
-              <label class="radio-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem; cursor: pointer;">
-                <input type="radio" name="p-branch-mode" id="branch-mode-custom" value="custom" onchange="toggleBranchMode('custom')" />
-                <span>Escolher filiais específicas e/ou preços individuais</span>
-              </label>
-            </div>
-
-            <!-- Painel Customizado por Filial (Exibido quando o usuário opta por personalizar) -->
-            <div id="custom-branches-panel" hidden style="margin-top: 10px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
-              <p style="font-size: 0.76rem; color: var(--muted); margin-bottom: 10px;">
-                Selecione as filiais onde o produto estará ativo e ajuste preços e estoques individuais caso necessário:
-              </p>
-
-              <!-- Filial 1: Grande Vitória -->
-              <div class="branch-custom-row" style="padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
-                <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 6px; cursor: pointer;">
-                  <input type="checkbox" id="p-active-grande_vitoria" checked onchange="toggleBranchActive('grande_vitoria')" />
+            <div class="branch-dropdown-menu" id="branch-dropdown-menu" hidden>
+              <div class="branch-dropdown-header">
+                <label class="branch-check-item all-item">
+                  <input type="checkbox" id="branch-select-all" checked onchange="toggleSelectAllBranches(this.checked)" />
+                  <span>Selecionar Todas as Unidades</span>
+                </label>
+              </div>
+              <div class="branch-dropdown-list">
+                <label class="branch-check-item">
+                  <input type="checkbox" class="branch-checkbox" id="check-branch-grande_vitoria" value="grande_vitoria" checked onchange="handleBranchCheckboxChange('grande_vitoria')" />
                   <span>📍 Grande Vitória</span>
                 </label>
-                <div class="form-grid" id="branch-inputs-grande_vitoria" style="margin: 0;">
-                  <label>Preço Regular (R$)<input id="p-price-grande_vitoria" type="number" min="0" step="0.01" placeholder="0.00" /></label>
-                  <label>Preço Promo (R$)<input id="p-sale-grande_vitoria" type="number" min="0" step="0.01" placeholder="0.00" /></label>
-                  <label>Estoque (un.)<input id="p-stock-grande_vitoria" type="number" min="0" step="1" placeholder="10" /></label>
-                </div>
-              </div>
-
-              <!-- Filial 2: São José -->
-              <div class="branch-custom-row" style="padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
-                <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 6px; cursor: pointer;">
-                  <input type="checkbox" id="p-active-sao_jose" checked onchange="toggleBranchActive('sao_jose')" />
+                <label class="branch-check-item">
+                  <input type="checkbox" class="branch-checkbox" id="check-branch-sao_jose" value="sao_jose" checked onchange="handleBranchCheckboxChange('sao_jose')" />
                   <span>📍 São José</span>
                 </label>
-                <div class="form-grid" id="branch-inputs-sao_jose" style="margin: 0;">
-                  <label>Preço Regular (R$)<input id="p-price-sao_jose" type="number" min="0" step="0.01" placeholder="0.00" /></label>
-                  <label>Preço Promo (R$)<input id="p-sale-sao_jose" type="number" min="0" step="0.01" placeholder="0.00" /></label>
-                  <label>Estoque (un.)<input id="p-stock-sao_jose" type="number" min="0" step="1" placeholder="10" /></label>
-                </div>
-              </div>
-
-              <!-- Filial 3: Novo Aleixo -->
-              <div class="branch-custom-row" style="padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
-                <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 6px; cursor: pointer;">
-                  <input type="checkbox" id="p-active-novo_aleixo" checked onchange="toggleBranchActive('novo_aleixo')" />
+                <label class="branch-check-item">
+                  <input type="checkbox" class="branch-checkbox" id="check-branch-novo_aleixo" value="novo_aleixo" checked onchange="handleBranchCheckboxChange('novo_aleixo')" />
                   <span>📍 Novo Aleixo</span>
                 </label>
-                <div class="form-grid" id="branch-inputs-novo_aleixo" style="margin: 0;">
-                  <label>Preço Regular (R$)<input id="p-price-novo_aleixo" type="number" min="0" step="0.01" placeholder="0.00" /></label>
-                  <label>Preço Promo (R$)<input id="p-sale-novo_aleixo" type="number" min="0" step="0.01" placeholder="0.00" /></label>
-                  <label>Estoque (un.)<input id="p-stock-novo_aleixo" type="number" min="0" step="1" placeholder="10" /></label>
-                </div>
-              </div>
-
-              <!-- Filial 4: Nova Cidade -->
-              <div class="branch-custom-row" style="padding: 8px 0;">
-                <label style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 6px; cursor: pointer;">
-                  <input type="checkbox" id="p-active-nova_cidade" checked onchange="toggleBranchActive('nova_cidade')" />
+                <label class="branch-check-item">
+                  <input type="checkbox" class="branch-checkbox" id="check-branch-nova_cidade" value="nova_cidade" checked onchange="handleBranchCheckboxChange('nova_cidade')" />
                   <span>📍 Nova Cidade</span>
                 </label>
-                <div class="form-grid" id="branch-inputs-nova_cidade" style="margin: 0;">
-                  <label>Preço Regular (R$)<input id="p-price-nova_cidade" type="number" min="0" step="0.01" placeholder="0.00" /></label>
-                  <label>Preço Promo (R$)<input id="p-sale-nova_cidade" type="number" min="0" step="0.01" placeholder="0.00" /></label>
-                  <label>Estoque (un.)<input id="p-stock-nova_cidade" type="number" min="0" step="1" placeholder="10" /></label>
-                </div>
               </div>
             </div>
+          </div>
+
+          <!-- Barra de Preenchimento Rápido / Em Massa -->
+          <div id="bulk-price-bar" style="margin-top: 12px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 10px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span>⚡ Preenchimento Rápido (Aplicar para todas selecionadas):</span>
+              <button type="button" class="replicate-branch-btn" onclick="applyBulkPricesToSelected()" style="font-size: 0.72rem; padding: 3px 8px;">Aplicar a todas</button>
+            </div>
+            <div class="form-grid" style="margin: 0; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
+              <label style="font-size: 0.74rem;">Preço Regular (R$)<input id="bulk-price" type="number" min="0" step="0.01" placeholder="0.00" oninput="autoSyncBulkPrice(this.value)" /></label>
+              <label style="font-size: 0.74rem;">Preço Promo (R$)<input id="bulk-sale" type="number" min="0" step="0.01" placeholder="0.00" oninput="autoSyncBulkSale(this.value)" /></label>
+              <label style="font-size: 0.74rem;">Estoque (un.)<input id="bulk-stock" type="number" min="0" step="1" placeholder="10" value="10" oninput="autoSyncBulkStock(this.value)" /></label>
+            </div>
+          </div>
+
+          <!-- Container Dinâmico com os Preços dos Bairros Selecionados -->
+          <div id="selected-branches-container" style="margin-top: 14px;">
+            <!-- Renderizado dinamicamente pelo JS -->
           </div>
         </div>
 
@@ -1200,7 +1160,7 @@
         <input type="hidden" id="p-stock" />
         <input type="hidden" id="p-promo" />
 
-        <button class="primary-button wide" style="margin-top: 18px;" type="submit">Salvar Medicamento</button>
+        <button class="primary-button wide" id="product-submit-btn" style="margin-top: 18px;" type="submit">Salvar Medicamento</button>
       </form>
     </dialog>
 
@@ -1208,6 +1168,6 @@
     <script src="xlsx.full.min.js"></script>
     <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>'); }</script>
     <!-- Script Principal como Módulo ES6 com Firebase -->
-    <script type="module" src="app.js?v=5.3"></script>
+    <script type="module" src="app.js?v=5.4"></script>
   </body>
 </html>
