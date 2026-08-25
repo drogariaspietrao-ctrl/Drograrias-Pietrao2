@@ -2038,7 +2038,8 @@ function fillProductModalCategories(selectedCategory = '') {
 
   const newWrapper = $('#new-category-wrapper');
   if (newWrapper) newWrapper.hidden = true;
-  $('#p-new-category').value = '';
+  const newCatInput = $('#p-new-category');
+  if (newCatInput) newCatInput.value = '';
 }
 
 window.handleCategorySelectChange = function(select) {
@@ -2047,29 +2048,38 @@ window.handleCategorySelectChange = function(select) {
 
   if (select.value === '__NEW__') {
     newWrapper.hidden = false;
-    $('#p-new-category').focus();
+    $('#p-new-category')?.focus();
   } else {
     newWrapper.hidden = true;
   }
 };
 
 window.openProductModal = function(id = null) {
+  const modal = $('#product-modal');
   const form = $('#product-form');
-  if (!form) return;
+  if (!form || !modal) return;
+
   form.reset();
-  $('#product-id').value = id || '';
-  $('#discount-preview-badge').hidden = true;
+
+  const idInput = $('#product-id');
+  if (idInput) idInput.value = id || '';
+
+  const discountBadge = $('#discount-preview-badge');
+  if (discountBadge) discountBadge.hidden = true;
+
   switchProductBranchTab('grande_vitoria');
+
+  const title = $('#product-modal-title');
 
   if (id) {
     const p = db.products.find(x => String(x.id) === String(id));
     if (!p) return;
 
-    $('#product-modal-title').textContent = 'Editar Medicamento';
-    $('#p-name').value = p.name || '';
-    $('#p-barcode').value = p.barcode || '';
-    $('#p-description').value = p.description || '';
-    $('#p-image').value = p.image || '';
+    if (title) title.textContent = 'Editar Medicamento';
+    if ($('#p-name')) $('#p-name').value = p.name || '';
+    if ($('#p-barcode')) $('#p-barcode').value = p.barcode || '';
+    if ($('#p-description')) $('#p-description').value = p.description || '';
+    if ($('#p-image')) $('#p-image').value = p.image || '';
 
     fillProductModalCategories(p.category);
     updateImagePreview(p.image || '');
@@ -2088,9 +2098,11 @@ window.openProductModal = function(id = null) {
       if (promoInput) promoInput.checked = bData.promo;
     });
   } else {
-    $('#product-modal-title').textContent = 'Cadastrar Novo Medicamento';
-    $('#p-barcode').value = '';
-    $('#p-description').value = '';
+    if (title) title.textContent = 'Cadastrar Novo Medicamento';
+    if ($('#p-name')) $('#p-name').value = '';
+    if ($('#p-barcode')) $('#p-barcode').value = '';
+    if ($('#p-description')) $('#p-description').value = '';
+    if ($('#p-image')) $('#p-image').value = '';
     fillProductModalCategories();
     updateImagePreview('');
 
@@ -2102,7 +2114,7 @@ window.openProductModal = function(id = null) {
     });
   }
 
-  $('#product-modal')?.showModal();
+  modal.showModal();
 };
 
 window.updateImagePreview = function(url) {
