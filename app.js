@@ -2072,7 +2072,7 @@ window.toggleBranchDropdown = function() {
   if (!menu) return;
   const isHidden = menu.hidden;
   menu.hidden = !isHidden;
-  if (arrow) arrow.textContent = isHidden ? '▲' : '▼';
+  if (arrow) arrow.textContent = isHidden ? '▲ Fechar Seleção' : '▼ Escolher Lojas';
 };
 
 window.updateBranchDropdownSummary = function() {
