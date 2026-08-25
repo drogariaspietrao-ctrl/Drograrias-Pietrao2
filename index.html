@@ -1091,27 +1091,29 @@
           </div>
         </div>
 
-        <!-- SEÇÃO DE PREÇO, ESTOQUE E UNIDADES / BAIRROS -->
-        <div style="margin-top: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); padding: 14px;">
-          <label style="font-weight: 800; font-size: 0.88rem; color: var(--ink); display: block; margin-bottom: 2px;">
-            🏬 Unidades Físicas (Bairros) <strong style="color:var(--red);">*</strong>
-          </label>
+        <!-- SEÇÃO: DISPONÍVEL NAS FILIAIS FÍSICAS -->
+        <div style="margin-top: 16px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: var(--radius-sm); padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-weight: 800; font-size: 0.92rem; color: var(--ink); margin: 0;">
+              🏬 Disponível nas Filiais Físicas <strong style="color:var(--red);">*</strong>
+            </label>
+          </div>
           <small style="color: var(--muted); font-size: 0.74rem; display: block; margin-bottom: 10px;">
-            Selecione as unidades onde este medicamento estará disponível para venda:
+            Abra a aba suspensa abaixo e selecione as lojas/unidades onde o produto estará disponível:
           </small>
 
-          <!-- Dropdown Suspenso Interativo de Bairros -->
+          <!-- Aba Suspensa / Menu de Seleção de Lojas -->
           <div class="branch-dropdown-wrapper" id="branch-dropdown-wrapper">
             <button type="button" class="branch-dropdown-trigger" id="branch-dropdown-trigger" onclick="toggleBranchDropdown()">
-              <span id="branch-dropdown-summary">📍 4 unidades selecionadas</span>
-              <span class="branch-dropdown-arrow" id="branch-dropdown-arrow">▼</span>
+              <span id="branch-dropdown-summary">📍 4 filiais físicas selecionadas</span>
+              <span class="branch-dropdown-arrow" id="branch-dropdown-arrow">▼ Escolher Lojas</span>
             </button>
 
             <div class="branch-dropdown-menu" id="branch-dropdown-menu" hidden>
               <div class="branch-dropdown-header">
                 <label class="branch-check-item all-item">
                   <input type="checkbox" id="branch-select-all" checked onchange="toggleSelectAllBranches(this.checked)" />
-                  <span>Selecionar Todas as Unidades</span>
+                  <span>☑ Selecionar Todas as 4 Filiais Físicas</span>
                 </label>
               </div>
               <div class="branch-dropdown-list">
@@ -1138,7 +1140,7 @@
           <!-- Barra de Preenchimento Rápido / Em Massa -->
           <div id="bulk-price-bar" style="margin-top: 12px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 10px;">
             <div style="font-size: 0.78rem; font-weight: 700; color: var(--ink); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-              <span>⚡ Preenchimento Rápido (Aplicar para todas selecionadas):</span>
+              <span>⚡ Preço e Estoque Rápido (Aplicar a todas as selecionadas):</span>
               <button type="button" class="replicate-branch-btn" onclick="applyBulkPricesToSelected()" style="font-size: 0.72rem; padding: 3px 8px;">Aplicar a todas</button>
             </div>
             <div class="form-grid" style="margin: 0; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
@@ -1168,6 +1170,6 @@
     <script src="xlsx.full.min.js"></script>
     <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>'); }</script>
     <!-- Script Principal como Módulo ES6 com Firebase -->
-    <script type="module" src="app.js?v=5.4"></script>
+    <script type="module" src="app.js?v=5.5"></script>
   </body>
 </html>
