@@ -769,8 +769,13 @@ function renderStore() {
 
   const allProducts = db.products || [];
 
-  // Filtragem dinâmica por categoria e busca
+  // Filtragem dinâmica por filial ativa, categoria e busca
   const filtered = allProducts.filter(p => {
+    const bData = getProductBranchData(p, currentBranch);
+    // Não exibe na loja se o produto não estiver disponível / sem estoque nesta filial
+    const isAvailableInBranch = Boolean(bData && bData.stock > 0 && bData.price > 0);
+    if (!isAvailableInBranch) return false;
+
     const matchCategory = currentCategory === 'Todos' || p.category === currentCategory;
     const nameNorm = normalizeStr(p.name);
     const catNorm = normalizeStr(p.category);
@@ -1520,6 +1525,7 @@ function renderAdminCatalog() {
     let pStock = p.stock || 0;
     if (branchFilter !== 'all') {
       const bData = getProductBranchData(p, branchFilter);
+      if (bData.stock === 0 && bData.price === 0) return false;
       pStock = bData.stock;
     } else {
       // Total de estoque somado das 4 filiais
@@ -2055,82 +2061,182 @@ window.handleCategorySelectChange = function(select) {
 };
 
 // ==========================================================================
-// CONTROLES DE DISPONIBILIDADE E PREÇOS POR FILIAL NO MODAL DE PRODUTO
+// CONTROLES DO MENU SUSPENSO INTERATIVO DE BAIRROS NO CADASTRO DE PRODUTO
 // ==========================================================================
 
-window.toggleBranchMode = function(mode) {
-  const customPanel = $('#custom-branches-panel');
-  if (!customPanel) return;
+let currentModalBranchData = {};
 
-  if (mode === 'custom') {
-    customPanel.hidden = false;
-    // Sincroniza os valores atuais dos campos principais para cada filial caso estejam vazios
-    const mainPrice = $('#p-main-price')?.value || '';
-    const mainSale = $('#p-main-sale')?.value || '';
-    const mainStock = $('#p-main-stock')?.value || '10';
+window.toggleBranchDropdown = function() {
+  const menu = $('#branch-dropdown-menu');
+  const arrow = $('#branch-dropdown-arrow');
+  if (!menu) return;
+  const isHidden = menu.hidden;
+  menu.hidden = !isHidden;
+  if (arrow) arrow.textContent = isHidden ? '▲' : '▼';
+};
 
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-      const priceIn = $(`#p-price-${bId}`);
-      const saleIn = $(`#p-sale-${bId}`);
-      const stockIn = $(`#p-stock-${bId}`);
+window.updateBranchDropdownSummary = function() {
+  const checkedBoxes = Array.from($$('.branch-checkbox:checked'));
+  const summary = $('#branch-dropdown-summary');
+  const selectAll = $('#branch-select-all');
 
-      if (priceIn && !priceIn.value) priceIn.value = mainPrice;
-      if (saleIn && !saleIn.value) saleIn.value = mainSale;
-      if (stockIn && !stockIn.value) stockIn.value = mainStock;
-    });
+  if (selectAll) {
+    selectAll.checked = checkedBoxes.length === Object.keys(DEFAULT_BRANCHES).length;
+  }
+
+  if (!summary) return;
+
+  if (checkedBoxes.length === 0) {
+    summary.innerHTML = '<span style="color: var(--red);">⚠️ Nenhuma unidade selecionada</span>';
+  } else if (checkedBoxes.length === Object.keys(DEFAULT_BRANCHES).length) {
+    summary.textContent = `📍 Todas as 4 filiais selecionadas`;
   } else {
-    customPanel.hidden = true;
+    const names = checkedBoxes.map(cb => DEFAULT_BRANCHES[cb.value]?.shortName || cb.value).join(', ');
+    summary.textContent = `📍 ${checkedBoxes.length} unidade${checkedBoxes.length > 1 ? 's' : ''} (${names})`;
   }
 };
 
-window.toggleBranchActive = function(branchId) {
-  const activeCheckbox = $(`#p-active-${branchId}`);
-  const inputsContainer = $(`#branch-inputs-${branchId}`);
-  if (!activeCheckbox || !inputsContainer) return;
-
-  const isActive = activeCheckbox.checked;
-  inputsContainer.style.opacity = isActive ? '1' : '0.4';
-  inputsContainer.style.pointerEvents = isActive ? 'auto' : 'none';
+window.toggleSelectAllBranches = function(checked) {
+  $$('.branch-checkbox').forEach(cb => {
+    cb.checked = checked;
+  });
+  updateBranchDropdownSummary();
+  renderSelectedBranchInputs();
 };
 
-window.syncMainPriceToBranches = function(val) {
-  const isAll = $('#branch-mode-all')?.checked;
-  if (isAll) {
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-      const el = $(`#p-price-${bId}`);
-      if (el) el.value = val;
-    });
-  }
+window.handleBranchCheckboxChange = function(branchId) {
+  updateBranchDropdownSummary();
+  renderSelectedBranchInputs();
 };
 
-window.syncMainSaleToBranches = function(val) {
-  const isAll = $('#branch-mode-all')?.checked;
-  if (isAll) {
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-      const el = $(`#p-sale-${bId}`);
-      if (el) el.value = val;
-    });
+window.renderSelectedBranchInputs = function(initialBranches = null) {
+  const container = $('#selected-branches-container');
+  if (!container) return;
+
+  // Salva os valores atuais digitados antes de re-renderizar
+  Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+    const pInput = $(`#p-price-${bId}`);
+    const sInput = $(`#p-sale-${bId}`);
+    const stInput = $(`#p-stock-${bId}`);
+    const prInput = $(`#p-promo-${bId}`);
+
+    if (pInput || sInput || stInput) {
+      if (!currentModalBranchData[bId]) currentModalBranchData[bId] = {};
+      if (pInput) currentModalBranchData[bId].price = pInput.value;
+      if (sInput) currentModalBranchData[bId].sale = sInput.value;
+      if (stInput) currentModalBranchData[bId].stock = stInput.value;
+      if (prInput) currentModalBranchData[bId].promo = prInput.checked;
+    }
+  });
+
+  if (initialBranches) {
+    currentModalBranchData = JSON.parse(JSON.stringify(initialBranches));
   }
+
+  const checkedBranches = Array.from($$('.branch-checkbox:checked')).map(cb => cb.value);
+
+  if (checkedBranches.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 16px; background: #fff1f2; border: 1.5px dashed #fecdd3; border-radius: 6px; text-align: center; color: var(--red);">
+        <p style="font-weight: 700; font-size: 0.84rem; margin-bottom: 4px;">⚠️ Nenhuma unidade física selecionada</p>
+        <p style="font-size: 0.74rem; color: var(--muted);">Clique no menu suspenso acima e marque ao menos um bairro para habilitar os campos de preço e estoque.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const bulkPrice = $('#bulk-price')?.value || '';
+  const bulkSale = $('#bulk-sale')?.value || '';
+  const bulkStock = $('#bulk-stock')?.value || '10';
+
+  let html = '';
+  checkedBranches.forEach(bId => {
+    const branchInfo = DEFAULT_BRANCHES[bId];
+    const bData = currentModalBranchData[bId] || {};
+    const priceVal = (bData.price !== undefined && bData.price !== '') ? bData.price : bulkPrice;
+    const saleVal = (bData.sale !== undefined && bData.sale !== null && bData.sale !== '') ? bData.sale : bulkSale;
+    const stockVal = (bData.stock !== undefined && bData.stock !== '') ? bData.stock : bulkStock;
+    const promoChecked = Boolean(bData.promo);
+
+    html += `
+      <div class="branch-price-card" id="price-card-${bId}">
+        <div class="branch-price-card-header">
+          <strong>📍 ${branchInfo.name}</strong>
+          <span class="branch-status-badge">Ativo nesta unidade</span>
+        </div>
+        <div class="form-grid" style="margin: 0; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
+          <label>
+            Preço Regular (R$) <strong style="color:var(--red);">*</strong>
+            <input id="p-price-${bId}" type="number" min="0" step="0.01" placeholder="0.00" value="${priceVal}" />
+          </label>
+          <label>
+            Preço Promo (R$) <small>(Opcional)</small>
+            <input id="p-sale-${bId}" type="number" min="0" step="0.01" placeholder="0.00" value="${saleVal}" />
+          </label>
+          <label>
+            Estoque (un.) <strong style="color:var(--red);">*</strong>
+            <input id="p-stock-${bId}" type="number" min="0" step="1" placeholder="10" value="${stockVal}" />
+          </label>
+        </div>
+        <div class="checkbox-group" style="margin-top: 8px;">
+          <label class="checkbox-label" style="font-size: 0.76rem;">
+            <input id="p-promo-${bId}" type="checkbox" ${promoChecked ? 'checked' : ''} />
+            <span>Destacar como Promoção do Dia nesta unidade</span>
+          </label>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
 };
 
-window.syncMainStockToBranches = function(val) {
-  const isAll = $('#branch-mode-all')?.checked;
-  if (isAll) {
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-      const el = $(`#p-stock-${bId}`);
-      if (el) el.value = val;
-    });
-  }
+window.applyBulkPricesToSelected = function() {
+  const bulkPrice = $('#bulk-price')?.value || '';
+  const bulkSale = $('#bulk-sale')?.value || '';
+  const bulkStock = $('#bulk-stock')?.value || '10';
+
+  const checkedBranches = Array.from($$('.branch-checkbox:checked')).map(cb => cb.value);
+  checkedBranches.forEach(bId => {
+    const pIn = $(`#p-price-${bId}`);
+    const sIn = $(`#p-sale-${bId}`);
+    const stIn = $(`#p-stock-${bId}`);
+
+    if (pIn && bulkPrice) pIn.value = bulkPrice;
+    if (sIn) sIn.value = bulkSale;
+    if (stIn && bulkStock) stIn.value = bulkStock;
+  });
+  showToast('⚡ Valores aplicados para todas as unidades selecionadas!');
 };
 
-window.syncMainPromoToBranches = function(checked) {
-  const isAll = $('#branch-mode-all')?.checked;
-  if (isAll) {
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-      const el = $(`#p-promo-${bId}`);
-      if (el) el.checked = checked;
-    });
-  }
+window.autoSyncBulkPrice = function(val) {
+  const checkedBranches = Array.from($$('.branch-checkbox:checked')).map(cb => cb.value);
+  checkedBranches.forEach(bId => {
+    const pIn = $(`#p-price-${bId}`);
+    if (pIn && !pIn.dataset.custom) {
+      pIn.value = val;
+    }
+  });
+};
+
+window.autoSyncBulkSale = function(val) {
+  const checkedBranches = Array.from($$('.branch-checkbox:checked')).map(cb => cb.value);
+  checkedBranches.forEach(bId => {
+    const sIn = $(`#p-sale-${bId}`);
+    if (sIn && !sIn.dataset.custom) {
+      sIn.value = val;
+    }
+  });
+};
+
+window.autoSyncBulkStock = function(val) {
+  const checkedBranches = Array.from($$('.branch-checkbox:checked')).map(cb => cb.value);
+  checkedBranches.forEach(bId => {
+    const stIn = $(`#p-stock-${bId}`);
+    if (stIn && !stIn.dataset.custom) {
+      stIn.value = val;
+    }
+  });
 };
 
 window.openProductModal = function(id = null) {
@@ -2139,11 +2245,16 @@ window.openProductModal = function(id = null) {
   if (!form || !modal) return;
 
   form.reset();
+  currentModalBranchData = {};
 
   const idInput = $('#product-id');
   if (idInput) idInput.value = id || '';
 
   const title = $('#product-modal-title');
+  const dropdownMenu = $('#branch-dropdown-menu');
+  if (dropdownMenu) dropdownMenu.hidden = true;
+  const arrow = $('#branch-dropdown-arrow');
+  if (arrow) arrow.textContent = '▼';
 
   if (id) {
     const p = db.products.find(x => String(x.id) === String(id));
@@ -2156,68 +2267,54 @@ window.openProductModal = function(id = null) {
     fillProductModalCategories(p.category);
     updateImagePreview(p.image || '');
 
-    // Verifica se os valores entre as filiais são diferentes
-    let isDifferent = false;
-    const branchKeys = Object.keys(DEFAULT_BRANCHES);
-    const firstBranch = getProductBranchData(p, branchKeys[0]);
+    // Identifica quais filiais têm esse produto ativo
+    const branchesDataToLoad = {};
+    let firstActivePrice = '';
+    let firstActiveSale = '';
+    let firstActiveStock = '10';
 
-    for (let i = 1; i < branchKeys.length; i++) {
-      const current = getProductBranchData(p, branchKeys[i]);
-      if (current.price !== firstBranch.price || current.sale !== firstBranch.sale || current.stock !== firstBranch.stock) {
-        isDifferent = true;
-        break;
-      }
-    }
-
-    if ($('#p-main-price')) $('#p-main-price').value = firstBranch.price > 0 ? firstBranch.price.toFixed(2) : '';
-    if ($('#p-main-sale')) $('#p-main-sale').value = (firstBranch.sale !== null && firstBranch.sale !== undefined) ? firstBranch.sale.toFixed(2) : '';
-    if ($('#p-main-stock')) $('#p-main-stock').value = firstBranch.stock;
-    if ($('#p-main-promo')) $('#p-main-promo').checked = Boolean(firstBranch.promo);
-
-    // Preenche dados específicos de cada filial no painel customizado
-    branchKeys.forEach(bId => {
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
       const bData = getProductBranchData(p, bId);
-      const priceInput = $(`#p-price-${bId}`);
-      const saleInput = $(`#p-sale-${bId}`);
-      const stockInput = $(`#p-stock-${bId}`);
-      const activeCheck = $(`#p-active-${bId}`);
+      const isBranchActive = (bData.stock > 0 || bData.price > 0);
+      const cb = $(`#check-branch-${bId}`);
+      if (cb) cb.checked = isBranchActive;
 
-      if (priceInput) priceInput.value = bData.price > 0 ? bData.price.toFixed(2) : '';
-      if (saleInput) saleInput.value = (bData.sale !== null && bData.sale !== undefined) ? bData.sale.toFixed(2) : '';
-      if (stockInput) stockInput.value = bData.stock;
-      if (activeCheck) activeCheck.checked = (bData.stock > 0 || bData.price > 0);
-      toggleBranchActive(bId);
+      branchesDataToLoad[bId] = {
+        price: bData.price > 0 ? bData.price.toFixed(2) : '',
+        sale: (bData.sale !== null && bData.sale !== undefined) ? bData.sale.toFixed(2) : '',
+        stock: bData.stock,
+        promo: Boolean(bData.promo)
+      };
+
+      if (isBranchActive && !firstActivePrice && bData.price > 0) {
+        firstActivePrice = bData.price.toFixed(2);
+        firstActiveSale = (bData.sale !== null && bData.sale !== undefined) ? bData.sale.toFixed(2) : '';
+        firstActiveStock = bData.stock;
+      }
     });
 
-    if (isDifferent) {
-      if ($('#branch-mode-custom')) $('#branch-mode-custom').checked = true;
-      toggleBranchMode('custom');
-    } else {
-      if ($('#branch-mode-all')) $('#branch-mode-all').checked = true;
-      toggleBranchMode('all');
-    }
+    if ($('#bulk-price')) $('#bulk-price').value = firstActivePrice;
+    if ($('#bulk-sale')) $('#bulk-sale').value = firstActiveSale;
+    if ($('#bulk-stock')) $('#bulk-stock').value = firstActiveStock || '10';
+
+    updateBranchDropdownSummary();
+    renderSelectedBranchInputs(branchesDataToLoad);
   } else {
     if (title) title.textContent = 'Cadastrar Novo Medicamento';
     if ($('#p-name')) $('#p-name').value = '';
     if ($('#p-image')) $('#p-image').value = '';
-    if ($('#p-main-price')) $('#p-main-price').value = '';
-    if ($('#p-main-sale')) $('#p-main-sale').value = '';
-    if ($('#p-main-stock')) $('#p-main-stock').value = '10';
-    if ($('#p-main-promo')) $('#p-main-promo').checked = false;
+    if ($('#bulk-price')) $('#bulk-price').value = '';
+    if ($('#bulk-sale')) $('#bulk-sale').value = '';
+    if ($('#bulk-stock')) $('#bulk-stock').value = '10';
 
-    if ($('#branch-mode-all')) $('#branch-mode-all').checked = true;
-    toggleBranchMode('all');
+    // Seleciona todas as 4 filiais por padrão
+    $$('.branch-checkbox').forEach(cb => cb.checked = true);
+    if ($('#branch-select-all')) $('#branch-select-all').checked = true;
 
     fillProductModalCategories();
     updateImagePreview('');
-
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-      if ($(`#p-price-${bId}`)) $(`#p-price-${bId}`).value = '';
-      if ($(`#p-sale-${bId}`)) $(`#p-sale-${bId}`).value = '';
-      if ($(`#p-stock-${bId}`)) $(`#p-stock-${bId}`).value = '10';
-      if ($(`#p-active-${bId}`)) $(`#p-active-${bId}`).checked = true;
-      toggleBranchActive(bId);
-    });
+    updateBranchDropdownSummary();
+    renderSelectedBranchInputs();
   }
 
   modal.showModal();
@@ -2248,8 +2345,15 @@ window.handleImageFileUpload = function(e) {
   reader.readAsDataURL(file);
 };
 
+let isSavingProduct = false;
+
 window.handleProductSubmit = async function(e) {
   if (e) e.preventDefault();
+
+  if (isSavingProduct) {
+    console.warn('[Firebase Firestore] Gravação já em andamento, ignorando clique duplicado.');
+    return;
+  }
 
   const idRaw = $('#product-id')?.value;
   const id = idRaw ? (Number(idRaw) || idRaw) : Date.now();
@@ -2286,70 +2390,62 @@ window.handleProductSubmit = async function(e) {
 
   const image = ($('#p-image')?.value || '').trim() || FALLBACK_IMAGE;
 
-  // Modo de Filiais: 'all' (todas iguais) ou 'custom' (filiais específicas)
-  const isCustomMode = $('#branch-mode-custom')?.checked;
+  // Coleta filiais selecionadas no dropdown
+  const checkedBranches = Array.from($$('.branch-checkbox:checked')).map(cb => cb.value);
 
-  const mainPrice = parseFloat($('#p-main-price')?.value) || 0;
-  const mainSaleRaw = $('#p-main-sale')?.value;
-  const mainSale = (!isNaN(parseFloat(mainSaleRaw)) && parseFloat(mainSaleRaw) > 0) ? parseFloat(mainSaleRaw) : null;
-  const mainStock = parseInt($('#p-main-stock')?.value, 10) || 0;
-  const mainPromo = Boolean($('#p-main-promo')?.checked);
-
-  if (!isCustomMode && mainPrice <= 0) {
-    alert('⚠️ Por favor, informe o Preço Regular do medicamento.');
-    $('#p-main-price')?.focus();
+  if (checkedBranches.length === 0) {
+    alert('⚠️ Selecione ao menos uma unidade física (bairro) no menu suspenso para disponibilizar o medicamento.');
+    toggleBranchDropdown();
     return;
   }
 
   const branchesData = {};
+  let validPriceFound = false;
 
-  if (!isCustomMode) {
-    // Aplica o mesmo valor para todas as 4 filiais físicas
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-      branchesData[bId] = {
-        price: mainPrice,
-        sale: mainSale,
-        stock: mainStock,
-        promo: mainPromo
-      };
-    });
-  } else {
-    // Coleta dados das filiais selecionadas / customizadas
-    let hasActiveBranch = false;
+  for (const bId of Object.keys(DEFAULT_BRANCHES)) {
+    const isChecked = checkedBranches.includes(bId);
+    if (isChecked) {
+      const pRaw = $(`#p-price-${bId}`)?.value || $('#bulk-price')?.value;
+      const bPrice = parseFloat(pRaw) || 0;
+      const sRaw = $(`#p-sale-${bId}`)?.value || $('#bulk-sale')?.value;
+      const bSale = (!isNaN(parseFloat(sRaw)) && parseFloat(sRaw) > 0) ? parseFloat(sRaw) : null;
+      const stRaw = $(`#p-stock-${bId}`)?.value || $('#bulk-stock')?.value;
+      const bStock = parseInt(stRaw, 10) || 0;
+      const bPromo = Boolean($(`#p-promo-${bId}`)?.checked);
 
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-      const isActive = Boolean($(`#p-active-${bId}`)?.checked);
-      if (isActive) {
-        hasActiveBranch = true;
-        const bPrice = parseFloat($(`#p-price-${bId}`)?.value) || mainPrice;
-        const bSaleRaw = $(`#p-sale-${bId}`)?.value;
-        const bSale = (!isNaN(parseFloat(bSaleRaw)) && parseFloat(bSaleRaw) > 0) ? parseFloat(bSaleRaw) : null;
-        const bStock = parseInt($(`#p-stock-${bId}`)?.value, 10) || (mainStock > 0 ? mainStock : 10);
-
-        branchesData[bId] = {
-          price: bPrice,
-          sale: bSale,
-          stock: bStock,
-          promo: mainPromo
-        };
-      } else {
-        // Filial desmarcada pelo usuário: estoque 0 (indisponível / esgotado nesta unidade)
-        branchesData[bId] = {
-          price: mainPrice || 0,
-          sale: null,
-          stock: 0,
-          promo: false
-        };
+      if (bPrice <= 0) {
+        alert(`⚠️ Por favor, informe o preço regular para a unidade ${DEFAULT_BRANCHES[bId].name}.`);
+        $(`#p-price-${bId}`)?.focus();
+        return;
       }
-    });
 
-    if (!hasActiveBranch) {
-      alert('⚠️ Por favor, selecione ao menos uma filial ativa para este medicamento.');
-      return;
+      validPriceFound = true;
+      branchesData[bId] = {
+        price: bPrice,
+        sale: bSale,
+        stock: bStock,
+        promo: bPromo,
+        active: true
+      };
+    } else {
+      // Filial não selecionada: estoque 0 e inativo (não aparece nessa unidade)
+      branchesData[bId] = {
+        price: 0,
+        sale: null,
+        stock: 0,
+        promo: false,
+        active: false
+      };
     }
   }
 
-  const primaryBranch = branchesData.grande_vitoria || Object.values(branchesData)[0];
+  if (!validPriceFound) {
+    alert('⚠️ Por favor, informe o preço do medicamento.');
+    return;
+  }
+
+  const firstActiveBranchKey = checkedBranches[0];
+  const primaryBranch = branchesData[firstActiveBranchKey] || Object.values(branchesData)[0];
 
   const productData = {
     id: id,
@@ -2364,6 +2460,13 @@ window.handleProductSubmit = async function(e) {
     promo: primaryBranch.promo,
     updatedAt: new Date().toISOString()
   };
+
+  isSavingProduct = true;
+  const submitBtn = $('#product-submit-btn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Salvando no Firebase...';
+  }
 
   console.log('[Firebase Firestore] Enviando produto para a coleção "produtos"...', productData);
   updateCloudSyncUI('syncing', `Salvando "${name}" no Firebase...`);
@@ -2381,6 +2484,12 @@ window.handleProductSubmit = async function(e) {
     console.error('[Firebase Firestore] ❌ ERRO ao salvar produto no Firestore:', err);
     updateCloudSyncUI('local', 'Erro ao salvar no Firebase');
     alert(`❌ ERRO AO SALVAR PRODUTO NO FIREBASE:\n\nCódigo: ${err.code || 'Desconhecido'}\nMensagem: ${err.message}`);
+  } finally {
+    isSavingProduct = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Salvar Medicamento';
+    }
   }
 };
 
@@ -2725,6 +2834,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if ($('#admin-area') && !$('#admin-area').hidden) {
         showStore();
       }
+    }
+  });
+
+  // Fechar dropdown de bairros ao clicar fora
+  document.addEventListener('click', (e) => {
+    const wrapper = $('#branch-dropdown-wrapper');
+    const menu = $('#branch-dropdown-menu');
+    if (wrapper && menu && !menu.hidden && !wrapper.contains(e.target)) {
+      menu.hidden = true;
+      const arrow = $('#branch-dropdown-arrow');
+      if (arrow) arrow.textContent = '▼';
     }
   });
 
