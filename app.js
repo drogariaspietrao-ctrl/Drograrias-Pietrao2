@@ -2054,6 +2054,85 @@ window.handleCategorySelectChange = function(select) {
   }
 };
 
+// ==========================================================================
+// CONTROLES DE DISPONIBILIDADE E PREÇOS POR FILIAL NO MODAL DE PRODUTO
+// ==========================================================================
+
+window.toggleBranchMode = function(mode) {
+  const customPanel = $('#custom-branches-panel');
+  if (!customPanel) return;
+
+  if (mode === 'custom') {
+    customPanel.hidden = false;
+    // Sincroniza os valores atuais dos campos principais para cada filial caso estejam vazios
+    const mainPrice = $('#p-main-price')?.value || '';
+    const mainSale = $('#p-main-sale')?.value || '';
+    const mainStock = $('#p-main-stock')?.value || '10';
+
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const priceIn = $(`#p-price-${bId}`);
+      const saleIn = $(`#p-sale-${bId}`);
+      const stockIn = $(`#p-stock-${bId}`);
+
+      if (priceIn && !priceIn.value) priceIn.value = mainPrice;
+      if (saleIn && !saleIn.value) saleIn.value = mainSale;
+      if (stockIn && !stockIn.value) stockIn.value = mainStock;
+    });
+  } else {
+    customPanel.hidden = true;
+  }
+};
+
+window.toggleBranchActive = function(branchId) {
+  const activeCheckbox = $(`#p-active-${branchId}`);
+  const inputsContainer = $(`#branch-inputs-${branchId}`);
+  if (!activeCheckbox || !inputsContainer) return;
+
+  const isActive = activeCheckbox.checked;
+  inputsContainer.style.opacity = isActive ? '1' : '0.4';
+  inputsContainer.style.pointerEvents = isActive ? 'auto' : 'none';
+};
+
+window.syncMainPriceToBranches = function(val) {
+  const isAll = $('#branch-mode-all')?.checked;
+  if (isAll) {
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const el = $(`#p-price-${bId}`);
+      if (el) el.value = val;
+    });
+  }
+};
+
+window.syncMainSaleToBranches = function(val) {
+  const isAll = $('#branch-mode-all')?.checked;
+  if (isAll) {
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const el = $(`#p-sale-${bId}`);
+      if (el) el.value = val;
+    });
+  }
+};
+
+window.syncMainStockToBranches = function(val) {
+  const isAll = $('#branch-mode-all')?.checked;
+  if (isAll) {
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const el = $(`#p-stock-${bId}`);
+      if (el) el.value = val;
+    });
+  }
+};
+
+window.syncMainPromoToBranches = function(checked) {
+  const isAll = $('#branch-mode-all')?.checked;
+  if (isAll) {
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const el = $(`#p-promo-${bId}`);
+      if (el) el.checked = checked;
+    });
+  }
+};
+
 window.openProductModal = function(id = null) {
   const modal = $('#product-modal');
   const form = $('#product-form');
@@ -2064,11 +2143,6 @@ window.openProductModal = function(id = null) {
   const idInput = $('#product-id');
   if (idInput) idInput.value = id || '';
 
-  const discountBadge = $('#discount-preview-badge');
-  if (discountBadge) discountBadge.hidden = true;
-
-  switchProductBranchTab('grande_vitoria');
-
   const title = $('#product-modal-title');
 
   if (id) {
@@ -2077,32 +2151,63 @@ window.openProductModal = function(id = null) {
 
     if (title) title.textContent = 'Editar Medicamento';
     if ($('#p-name')) $('#p-name').value = p.name || '';
-    if ($('#p-barcode')) $('#p-barcode').value = p.barcode || '';
-    if ($('#p-description')) $('#p-description').value = p.description || '';
     if ($('#p-image')) $('#p-image').value = p.image || '';
 
     fillProductModalCategories(p.category);
     updateImagePreview(p.image || '');
 
-    // Preenche dados específicos de cada filial
-    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+    // Verifica se os valores entre as filiais são diferentes
+    let isDifferent = false;
+    const branchKeys = Object.keys(DEFAULT_BRANCHES);
+    const firstBranch = getProductBranchData(p, branchKeys[0]);
+
+    for (let i = 1; i < branchKeys.length; i++) {
+      const current = getProductBranchData(p, branchKeys[i]);
+      if (current.price !== firstBranch.price || current.sale !== firstBranch.sale || current.stock !== firstBranch.stock) {
+        isDifferent = true;
+        break;
+      }
+    }
+
+    if ($('#p-main-price')) $('#p-main-price').value = firstBranch.price > 0 ? firstBranch.price.toFixed(2) : '';
+    if ($('#p-main-sale')) $('#p-main-sale').value = (firstBranch.sale !== null && firstBranch.sale !== undefined) ? firstBranch.sale.toFixed(2) : '';
+    if ($('#p-main-stock')) $('#p-main-stock').value = firstBranch.stock;
+    if ($('#p-main-promo')) $('#p-main-promo').checked = Boolean(firstBranch.promo);
+
+    // Preenche dados específicos de cada filial no painel customizado
+    branchKeys.forEach(bId => {
       const bData = getProductBranchData(p, bId);
       const priceInput = $(`#p-price-${bId}`);
       const saleInput = $(`#p-sale-${bId}`);
       const stockInput = $(`#p-stock-${bId}`);
-      const promoInput = $(`#p-promo-${bId}`);
+      const activeCheck = $(`#p-active-${bId}`);
 
       if (priceInput) priceInput.value = bData.price > 0 ? bData.price.toFixed(2) : '';
       if (saleInput) saleInput.value = (bData.sale !== null && bData.sale !== undefined) ? bData.sale.toFixed(2) : '';
       if (stockInput) stockInput.value = bData.stock;
-      if (promoInput) promoInput.checked = bData.promo;
+      if (activeCheck) activeCheck.checked = (bData.stock > 0 || bData.price > 0);
+      toggleBranchActive(bId);
     });
+
+    if (isDifferent) {
+      if ($('#branch-mode-custom')) $('#branch-mode-custom').checked = true;
+      toggleBranchMode('custom');
+    } else {
+      if ($('#branch-mode-all')) $('#branch-mode-all').checked = true;
+      toggleBranchMode('all');
+    }
   } else {
     if (title) title.textContent = 'Cadastrar Novo Medicamento';
     if ($('#p-name')) $('#p-name').value = '';
-    if ($('#p-barcode')) $('#p-barcode').value = '';
-    if ($('#p-description')) $('#p-description').value = '';
     if ($('#p-image')) $('#p-image').value = '';
+    if ($('#p-main-price')) $('#p-main-price').value = '';
+    if ($('#p-main-sale')) $('#p-main-sale').value = '';
+    if ($('#p-main-stock')) $('#p-main-stock').value = '10';
+    if ($('#p-main-promo')) $('#p-main-promo').checked = false;
+
+    if ($('#branch-mode-all')) $('#branch-mode-all').checked = true;
+    toggleBranchMode('all');
+
     fillProductModalCategories();
     updateImagePreview('');
 
@@ -2110,7 +2215,8 @@ window.openProductModal = function(id = null) {
       if ($(`#p-price-${bId}`)) $(`#p-price-${bId}`).value = '';
       if ($(`#p-sale-${bId}`)) $(`#p-sale-${bId}`).value = '';
       if ($(`#p-stock-${bId}`)) $(`#p-stock-${bId}`).value = '10';
-      if ($(`#p-promo-${bId}`)) $(`#p-promo-${bId}`).checked = false;
+      if ($(`#p-active-${bId}`)) $(`#p-active-${bId}`).checked = true;
+      toggleBranchActive(bId);
     });
   }
 
@@ -2136,24 +2242,10 @@ window.handleImageFileUpload = function(e) {
   const reader = new FileReader();
   reader.onload = event => {
     const base64 = event.target.result;
-    $('#p-image').value = base64;
+    if ($('#p-image')) $('#p-image').value = base64;
     updateImagePreview(base64);
   };
   reader.readAsDataURL(file);
-};
-
-window.calculateDiscountPreview = function() {
-  const price = parseFloat($('#p-price-grande_vitoria')?.value || 0);
-  const sale = parseFloat($('#p-sale-grande_vitoria')?.value || 0);
-  const badge = $('#discount-preview-badge');
-
-  if (badge && price > 0 && sale > 0 && sale < price) {
-    const percent = Math.round(((price - sale) / price) * 100);
-    badge.textContent = `Desconto de ${percent}% aplicado`;
-    badge.hidden = false;
-  } else if (badge) {
-    badge.hidden = true;
-  }
 };
 
 window.handleProductSubmit = async function(e) {
@@ -2162,8 +2254,6 @@ window.handleProductSubmit = async function(e) {
   const idRaw = $('#product-id')?.value;
   const id = idRaw ? (Number(idRaw) || idRaw) : Date.now();
   const name = ($('#p-name')?.value || '').trim();
-  const barcode = ($('#p-barcode')?.value || '').trim();
-  const description = ($('#p-description')?.value || '').trim();
   let category = $('#p-category')?.value || '';
   const newCategory = ($('#p-new-category')?.value || '').trim();
 
@@ -2196,79 +2286,86 @@ window.handleProductSubmit = async function(e) {
 
   const image = ($('#p-image')?.value || '').trim() || FALLBACK_IMAGE;
 
-  // Localiza o preço padrão informado em qualquer filial (prioriza Grande Vitória ou a primeira preenchida)
-  let basePrice = 0;
-  let baseSale = null;
-  let baseStock = 10;
-  let basePromo = false;
+  // Modo de Filiais: 'all' (todas iguais) ou 'custom' (filiais específicas)
+  const isCustomMode = $('#branch-mode-custom')?.checked;
 
-  for (const bId of Object.keys(DEFAULT_BRANCHES)) {
-    const pVal = parseFloat($(`#p-price-${bId}`)?.value);
-    if (!isNaN(pVal) && pVal > 0) {
-      basePrice = pVal;
-      const sVal = parseFloat($(`#p-sale-${bId}`)?.value);
-      baseSale = (!isNaN(sVal) && sVal > 0) ? sVal : null;
-      const stVal = parseInt($(`#p-stock-${bId}`)?.value, 10);
-      baseStock = !isNaN(stVal) ? stVal : 10;
-      basePromo = Boolean($(`#p-promo-${bId}`)?.checked);
-      break;
-    }
-  }
+  const mainPrice = parseFloat($('#p-main-price')?.value) || 0;
+  const mainSaleRaw = $('#p-main-sale')?.value;
+  const mainSale = (!isNaN(parseFloat(mainSaleRaw)) && parseFloat(mainSaleRaw) > 0) ? parseFloat(mainSaleRaw) : null;
+  const mainStock = parseInt($('#p-main-stock')?.value, 10) || 0;
+  const mainPromo = Boolean($('#p-main-promo')?.checked);
 
-  if (basePrice <= 0) {
-    alert('⚠️ Por favor, informe o preço regular do produto em ao menos uma das filiais.');
-    switchProductBranchTab('grande_vitoria');
-    $('#p-price-grande_vitoria')?.focus();
+  if (!isCustomMode && mainPrice <= 0) {
+    alert('⚠️ Por favor, informe o Preço Regular do medicamento.');
+    $('#p-main-price')?.focus();
     return;
   }
 
-  // Coleta dados específicos de cada uma das 4 filiais (com herança inteligente caso não personalizada)
   const branchesData = {};
-  Object.keys(DEFAULT_BRANCHES).forEach(bId => {
-    const rawPrice = $(`#p-price-${bId}`)?.value;
-    const parsedPrice = parseFloat(rawPrice);
-    const bPrice = (!isNaN(parsedPrice) && parsedPrice > 0) ? parsedPrice : basePrice;
 
-    const rawSale = $(`#p-sale-${bId}`)?.value;
-    const parsedSale = parseFloat(rawSale);
-    let bSale = null;
-    if (!isNaN(parsedSale) && parsedSale > 0) {
-      bSale = parsedSale;
-    } else if (rawPrice === '' || rawPrice === null || rawPrice === undefined) {
-      bSale = baseSale;
+  if (!isCustomMode) {
+    // Aplica o mesmo valor para todas as 4 filiais físicas
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      branchesData[bId] = {
+        price: mainPrice,
+        sale: mainSale,
+        stock: mainStock,
+        promo: mainPromo
+      };
+    });
+  } else {
+    // Coleta dados das filiais selecionadas / customizadas
+    let hasActiveBranch = false;
+
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const isActive = Boolean($(`#p-active-${bId}`)?.checked);
+      if (isActive) {
+        hasActiveBranch = true;
+        const bPrice = parseFloat($(`#p-price-${bId}`)?.value) || mainPrice;
+        const bSaleRaw = $(`#p-sale-${bId}`)?.value;
+        const bSale = (!isNaN(parseFloat(bSaleRaw)) && parseFloat(bSaleRaw) > 0) ? parseFloat(bSaleRaw) : null;
+        const bStock = parseInt($(`#p-stock-${bId}`)?.value, 10) || (mainStock > 0 ? mainStock : 10);
+
+        branchesData[bId] = {
+          price: bPrice,
+          sale: bSale,
+          stock: bStock,
+          promo: mainPromo
+        };
+      } else {
+        // Filial desmarcada pelo usuário: estoque 0 (indisponível / esgotado nesta unidade)
+        branchesData[bId] = {
+          price: mainPrice || 0,
+          sale: null,
+          stock: 0,
+          promo: false
+        };
+      }
+    });
+
+    if (!hasActiveBranch) {
+      alert('⚠️ Por favor, selecione ao menos uma filial ativa para este medicamento.');
+      return;
     }
+  }
 
-    const rawStock = $(`#p-stock-${bId}`)?.value;
-    const parsedStock = parseInt(rawStock, 10);
-    const bStock = !isNaN(parsedStock) ? Math.max(0, parsedStock) : baseStock;
-
-    const bPromo = Boolean($(`#p-promo-${bId}`)?.checked);
-
-    branchesData[bId] = {
-      price: bPrice,
-      sale: bSale,
-      stock: bStock,
-      promo: bPromo
-    };
-  });
+  const primaryBranch = branchesData.grande_vitoria || Object.values(branchesData)[0];
 
   const productData = {
     id: id,
     name: name,
     category: category,
-    barcode: barcode,
-    description: description,
     image: image,
     branches: branchesData,
-    // Valores de fallback raiz para compatibilidade
-    price: branchesData.grande_vitoria.price,
-    sale: branchesData.grande_vitoria.sale,
-    stock: branchesData.grande_vitoria.stock,
-    promo: branchesData.grande_vitoria.promo,
+    // Propriedades raiz para compatibilidade direta
+    price: primaryBranch.price,
+    sale: primaryBranch.sale,
+    stock: primaryBranch.stock,
+    promo: primaryBranch.promo,
     updatedAt: new Date().toISOString()
   };
 
-  console.log('[Firebase Firestore] Enviando produto multi-filial para a coleção "produtos"...', productData);
+  console.log('[Firebase Firestore] Enviando produto para a coleção "produtos"...', productData);
   updateCloudSyncUI('syncing', `Salvando "${name}" no Firebase...`);
 
   try {
@@ -2276,8 +2373,8 @@ window.handleProductSubmit = async function(e) {
     await setDoc(docRef, productData);
 
     console.log('[Firebase Firestore] ✅ SUCESSO! Produto salvo no Firestore com ID:', id);
-    showToast(`☁️ "${name}" salvo no Firebase para as 4 filiais!`);
-    alert(`✅ Medicamento "${name}" foi salvo com sucesso no Firebase Firestore com valores individuais para as 4 filiais!`);
+    showToast(`☁️ "${name}" salvo no Firebase com sucesso!`);
+    alert(`✅ Medicamento "${name}" foi salvo com sucesso no Firebase Firestore!`);
     
     $('#product-modal')?.close();
   } catch (err) {
