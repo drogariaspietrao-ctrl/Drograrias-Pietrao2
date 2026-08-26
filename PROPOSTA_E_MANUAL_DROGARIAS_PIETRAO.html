@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Proposta Comercial e Manual Operacional - Drogarias Pietrão</title>
+  <title>Proposta Comercial e Manual Operacional Ilustrado - Drogarias Pietrão</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
     @page {
       size: A4 portrait;
-      margin: 14mm 14mm 14mm 14mm;
+      margin: 12mm 12mm 12mm 12mm;
     }
 
     * {
@@ -20,11 +20,11 @@
     }
 
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       color: #1e293b;
       background-color: #ffffff;
-      line-height: 1.55;
-      font-size: 9.5pt;
+      line-height: 1.5;
+      font-size: 9pt;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -37,21 +37,18 @@
       page-break-inside: avoid;
     }
 
-    /* CAPA EXECUTIVA */
+    /* ==========================================================================
+       CAPA EXECUTIVA
+       ========================================================================== */
     .cover-container {
-      min-height: 260mm;
+      min-height: 265mm;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       border: 3px solid #7c1214;
       border-radius: 12px;
-      padding: 36px 32px;
+      padding: 32px 28px;
       background: linear-gradient(180deg, #ffffff 0%, #fff8f8 100%);
-      position: relative;
-    }
-
-    .cover-top {
-      text-align: left;
     }
 
     .cover-badge {
@@ -62,60 +59,60 @@
       font-size: 8pt;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 30px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .cover-logo-wrap {
       text-align: center;
-      margin: 15px 0 20px 0;
+      margin: 10px 0 15px 0;
     }
 
     .cover-logo {
-      max-width: 250px;
-      max-height: 110px;
+      max-width: 240px;
+      max-height: 100px;
       object-fit: contain;
     }
 
     .cover-title {
-      font-size: 23pt;
+      font-size: 22pt;
       font-weight: 800;
       color: #7c1214;
       line-height: 1.2;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       text-align: center;
     }
 
     .cover-subtitle {
-      font-size: 11.5pt;
+      font-size: 11pt;
       font-weight: 600;
       color: #d9252a;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .cover-desc {
-      font-size: 9.5pt;
+      font-size: 9pt;
       color: #475569;
       text-align: center;
       max-width: 540px;
-      margin: 0 auto 25px auto;
-      line-height: 1.6;
+      margin: 0 auto 20px auto;
+      line-height: 1.5;
     }
 
     .cover-features-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 25px;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     .cover-feature-item {
       background: #ffffff;
       border: 1px solid #fecaca;
       border-left: 4px solid #d9252a;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 6px;
       font-size: 8.5pt;
       font-weight: 700;
@@ -129,14 +126,14 @@
       background: #fee2e2;
       color: #991b1b;
       font-weight: 800;
-      font-size: 8.5pt;
-      padding: 3px 8px;
+      font-size: 8pt;
+      padding: 2px 6px;
       border-radius: 4px;
     }
 
     .cover-footer {
       border-top: 1.5px solid #e2e8f0;
-      padding-top: 14px;
+      padding-top: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -144,23 +141,25 @@
       color: #64748b;
     }
 
-    /* CABEÇALHOS E ESTRUTURA DAS PÁGINAS */
+    /* ==========================================================================
+       ESTRUTURA DE SEÇÕES E TÍTULOS
+       ========================================================================== */
     .section-header {
       border-bottom: 2.5px solid #7c1214;
-      padding-bottom: 8px;
-      margin-bottom: 16px;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
     .section-header h2 {
-      font-size: 14pt;
+      font-size: 13pt;
       font-weight: 800;
       color: #7c1214;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .section-tag {
@@ -168,50 +167,48 @@
       color: #991b1b;
       font-size: 7pt;
       font-weight: 800;
-      padding: 3px 8px;
+      padding: 2px 7px;
       border-radius: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     h3 {
-      font-size: 10.5pt;
+      font-size: 10pt;
       font-weight: 800;
       color: #0f172a;
-      margin: 14px 0 6px 0;
+      margin: 10px 0 4px 0;
     }
 
     p {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       color: #334155;
-      line-height: 1.6;
+      line-height: 1.5;
     }
 
     /* CARDS & GRIDS */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin: 12px 0;
+      gap: 12px;
+      margin: 10px 0;
     }
 
     .grid-4 {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin: 12px 0;
+      gap: 8px;
+      margin: 10px 0;
     }
 
     .card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px 14px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      border-radius: 6px;
+      padding: 10px 12px;
     }
 
     .card-primary {
-      border-top: 3.5px solid #d9252a;
+      border-top: 3px solid #d9252a;
       background: #fffafa;
     }
 
@@ -227,24 +224,68 @@
     }
 
     .card h4 {
-      font-size: 9pt;
+      font-size: 8.5pt;
       font-weight: 800;
       color: #7c1214;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
+    }
+
+    /* MOCKUPS ILUSTRATIVOS DE TELAS */
+    .ui-mockup-frame {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .ui-mockup-bar {
+      background: #f1f5f9;
+      border-bottom: 1px solid #cbd5e1;
+      padding: 5px 10px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .ui-mockup-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .ui-mockup-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #cbd5e1;
+    }
+
+    .ui-mockup-content {
+      padding: 10px 12px;
+      background: #ffffff;
+    }
+
+    .ui-caption {
+      font-size: 7.5pt;
+      color: #64748b;
+      font-style: italic;
+      margin-top: 3px;
+      text-align: center;
     }
 
     /* PASSOS NUMERADOS */
     .step-box {
       display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 8px;
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px 14px;
+      border-radius: 6px;
+      padding: 8px 10px;
       align-items: flex-start;
     }
 
@@ -252,9 +293,9 @@
       background: #7c1214;
       color: #ffffff;
       font-weight: 800;
-      font-size: 10.5pt;
-      width: 30px;
-      height: 30px;
+      font-size: 9pt;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -267,25 +308,25 @@
     }
 
     .step-content h4 {
-      font-size: 9.5pt;
+      font-size: 8.5pt;
       font-weight: 800;
       color: #0f172a;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
 
     .step-content p {
       margin-bottom: 0;
-      font-size: 8.5pt;
+      font-size: 8pt;
       color: #475569;
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     /* TABELAS */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 12px 0;
-      font-size: 8.5pt;
+      margin: 8px 0;
+      font-size: 8pt;
     }
 
     th {
@@ -293,11 +334,11 @@
       color: #ffffff;
       font-weight: 700;
       text-align: left;
-      padding: 8px 10px;
+      padding: 6px 8px;
     }
 
     td {
-      padding: 8px 10px;
+      padding: 6px 8px;
       border-bottom: 1px solid #e2e8f0;
       color: #334155;
     }
@@ -308,9 +349,9 @@
 
     .badge {
       display: inline-block;
-      padding: 2px 7px;
-      border-radius: 12px;
-      font-size: 7.5pt;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 7pt;
       font-weight: 700;
     }
 
@@ -329,78 +370,73 @@
       color: #1e40af;
     }
 
-    /* DESTAQUES VISUAIS */
     .callout {
       background: #fffbeb;
       border: 1px solid #fef3c7;
       border-left: 4px solid #f59e0b;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 6px;
-      margin: 12px 0;
-      font-size: 8.5pt;
+      margin: 10px 0;
+      font-size: 8pt;
       color: #92400e;
-    }
-
-    .callout strong {
-      color: #78350f;
     }
 
     .callout-pro {
       background: #eff6ff;
       border: 1px solid #dbeafe;
       border-left: 4px solid #2563eb;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 6px;
-      margin: 12px 0;
-      font-size: 8.5pt;
+      margin: 10px 0;
+      font-size: 8pt;
       color: #1e40af;
     }
 
-    ul, ol {
-      margin-left: 18px;
-      margin-bottom: 10px;
+    ul {
+      margin-left: 16px;
+      margin-bottom: 8px;
     }
 
     li {
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       color: #334155;
-      font-size: 8.5pt;
+      font-size: 8pt;
     }
 
     .footer-doc {
-      margin-top: 20px;
+      margin-top: 16px;
       border-top: 1px solid #e2e8f0;
-      padding-top: 6px;
+      padding-top: 4px;
       display: flex;
       justify-content: space-between;
-      font-size: 7.5pt;
+      font-size: 7pt;
       color: #94a3b8;
     }
 
     code {
       background: #f1f5f9;
       color: #0f172a;
-      padding: 1px 5px;
+      padding: 1px 4px;
       border-radius: 3px;
-      font-size: 8pt;
-      font-family: Consolas, Monaco, monospace;
+      font-size: 7.5pt;
+      font-family: Consolas, monospace;
     }
   </style>
 </head>
 <body>
 
-  <!-- ==================== PÁGINA 1: CAPA EXECUTIVA ==================== -->
+  <!-- ==================== PÁGINA 1: CAPA ==================== -->
   <div class="cover-container avoid-break">
-    <div class="cover-top">
-      <span class="cover-badge">DOCUMENTO EXECUTIVO &amp; ESTRATÉGICO</span>
+    <div>
+      <span class="cover-badge">DOCUMENTO EXECUTIVO ILUSTRADO</span>
       <div class="cover-logo-wrap">
         <img src="LOGO PIETRAO ATUALIZADO.jfif" class="cover-logo" alt="Logo Oficial Drogarias Pietrão" onerror="this.style.display='none'" />
       </div>
       <h1 class="cover-title">Plataforma Digital &amp; Sistema Multi-Filiais</h1>
-      <div class="cover-subtitle">Proposta Comercial, Visão da Automatização e Manual de Operação Completo</div>
+      <div class="cover-subtitle">Proposta Comercial, Visão da Automatização e Manual Ilustrado de Cada Mecanismo</div>
       <p class="cover-desc">
-        Apresentação detalhada da solução digital integrada para as <strong>4 Filiais de Drogarias Pietrão</strong>.
-        Engloba a vitrine virtual interativa, pedidos estruturados via WhatsApp por filial, gestão centralizada no Google Firebase e manual de instruções para clientes e administradores.
+        Apresentação detalhada e visual da solução digital integrada para as <strong>4 Filiais de Drogarias Pietrão</strong>.
+        Engloba a vitrine virtual, pedidos via WhatsApp por loja, gestão centralizada no Google Firebase e manual ilustrado passo a passo para clientes e administradores.
       </p>
     </div>
 
@@ -459,24 +495,24 @@
 
   <div class="grid-4">
     <div class="card">
-      <div style="font-weight:800; font-size:11pt; color:#7c1214; margin-bottom: 2px;">+ Ticket Médio</div>
+      <div style="font-weight:800; font-size:10pt; color:#7c1214;">+ Ticket Médio</div>
       <strong>Vendas Adicionais</strong>
-      <p style="font-size: 7.8pt; color: #64748b; margin-top: 4px;">O cliente descobre novos produtos, promoções do dia e itens correlatos na vitrine digital.</p>
+      <p style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">O cliente descobre novos produtos, ofertas do dia e itens correlatos na vitrine.</p>
     </div>
     <div class="card">
-      <div style="font-weight:800; font-size:11pt; color:#7c1214; margin-bottom: 2px;">-80% Tempo</div>
+      <div style="font-weight:800; font-size:10pt; color:#7c1214;">-80% Tempo</div>
       <strong>Agilidade Total</strong>
-      <p style="font-size: 7.8pt; color: #64748b; margin-top: 4px;">Redução drástica do tempo gasto para fechar uma venda no WhatsApp de cada filial.</p>
+      <p style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Redução drástica do tempo gasto para fechar uma venda no WhatsApp da loja.</p>
     </div>
     <div class="card">
-      <div style="font-weight:800; font-size:11pt; color:#7c1214; margin-bottom: 2px;">Fidelização</div>
+      <div style="font-weight:800; font-size:10pt; color:#7c1214;">Fidelização</div>
       <strong>Recompra Rápida</strong>
-      <p style="font-size: 7.8pt; color: #64748b; margin-top: 4px;">Endereço de entrega salvo no navegador para compras recorrentes em poucos segundos.</p>
+      <p style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Endereço de entrega salvo no navegador para compras recorrentes em segundos.</p>
     </div>
     <div class="card">
-      <div style="font-weight:800; font-size:11pt; color:#7c1214; margin-bottom: 2px;">Nuvem 24/7</div>
+      <div style="font-weight:800; font-size:10pt; color:#7c1214;">Nuvem 24/7</div>
       <strong>Google Firebase</strong>
-      <p style="font-size: 7.8pt; color: #64748b; margin-top: 4px;">Qualquer alteração de preço ou estoque reflete instantaneamente em todos os celulares.</p>
+      <p style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Qualquer alteração de preço ou estoque reflete instantaneamente em todos os celulares.</p>
     </div>
   </div>
 
@@ -489,160 +525,168 @@
     <span>Página 2</span>
   </div>
 
-  <!-- ==================== PÁGINA 3: GUIA DO CLIENTE ==================== -->
+  <!-- ==================== PÁGINA 3: GUIA DO CLIENTE COM ILUSTRAÇÕES ==================== -->
   <div class="page-break"></div>
 
   <div class="section-header">
-    <h2>2. Guia do Usuário: Como o Cliente Compra no Site</h2>
-    <span class="section-tag">Experiência do Cliente</span>
+    <h2>2. Guia do Cliente: Como Navegar e Comprar</h2>
+    <span class="section-tag">Experiência do Usuário</span>
   </div>
 
-  <p>
-    O fluxo de compras foi planejado para ser ultra-rápido, intuitivo em celulares e computadores, focado em converter o visitante em um pedido fechado no WhatsApp em menos de 1 minuto.
-  </p>
+  <p>O fluxo de compras foi desenhado para ser intuitivo e converter rapidamente o visitante em um pedido no WhatsApp da filial correta:</p>
 
-  <div class="step-box">
-    <div class="step-number">1</div>
-    <div class="step-content">
-      <h4>Seleção da Unidade Física (Bairro Mais Próximo)</h4>
-      <p>
-        Ao entrar no site, o cliente escolhe a filial de sua preferência (<strong>Grande Vitória</strong>, <strong>São José</strong>, <strong>Novo Aleixo</strong> ou <strong>Nova Cidade</strong>). A preferência fica salva na memória do navegador e pode ser alterada a qualquer momento pelo seletor no topo da página.
-      </p>
+  <!-- ILUSTRAÇÃO 1: MODAL DE FILIAIS -->
+  <div class="ui-mockup-frame avoid-break">
+    <div class="ui-mockup-bar">
+      <span>ILUSTRAÇÃO 1 &middot; Escolha da Unidade Física (Bairro) pelo Cliente</span>
+      <div class="ui-mockup-dots"><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div></div>
+    </div>
+    <div class="ui-mockup-content" style="background:#fffafa;">
+      <div style="text-align: center; margin-bottom: 8px;">
+        <span style="font-size: 8pt; font-weight:800; color:#7c1214; text-transform:uppercase;">Drogarias Pietrão</span>
+        <strong style="display:block; font-size: 11pt; color:#1e293b;">Selecione a sua Unidade</strong>
+        <span style="font-size: 7.5pt; color:#64748b;">Escolha a loja mais próxima para consultar preços e estoque correspondente:</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+        <div style="border: 2px solid #7c1214; background: #fff5f5; border-radius: 6px; padding: 6px; text-align: center;">
+          <strong style="color: #7c1214; font-size: 8.5pt; display: block;">📍 Grande Vitória</strong>
+          <span style="font-size: 6.5pt; color: #16a34a; font-weight:700;">● Loja Aberta</span>
+        </div>
+        <div style="border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; padding: 6px; text-align: center;">
+          <strong style="color: #1e293b; font-size: 8.5pt; display: block;">📍 São José</strong>
+          <span style="font-size: 6.5pt; color: #16a34a; font-weight:700;">● Loja Aberta</span>
+        </div>
+        <div style="border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; padding: 6px; text-align: center;">
+          <strong style="color: #1e293b; font-size: 8.5pt; display: block;">📍 Novo Aleixo</strong>
+          <span style="font-size: 6.5pt; color: #16a34a; font-weight:700;">● Loja Aberta</span>
+        </div>
+        <div style="border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; padding: 6px; text-align: center;">
+          <strong style="color: #1e293b; font-size: 8.5pt; display: block;">📍 Nova Cidade</strong>
+          <span style="font-size: 6.5pt; color: #16a34a; font-weight:700;">● Loja Aberta</span>
+        </div>
+      </div>
     </div>
   </div>
+  <div class="ui-caption">Figura 1: Modal exibido no primeiro acesso do cliente, com seleção persistente no navegador.</div>
 
-  <div class="step-box">
-    <div class="step-number">2</div>
-    <div class="step-content">
-      <h4>Navegação, Ofertas do Dia e Busca Inteligente</h4>
-      <p>
-        O catálogo exibe apenas os produtos ativos e disponíveis na unidade selecionada:
-        <br>&bull; <strong>Filtros por Categoria:</strong> Medicamentos, Higiene, Vitaminas, Cuidados Diários, etc.
-        <br>&bull; <strong>Carrossel de Promoções do Dia:</strong> Destaques com descontos especiais configurados para aquela loja.
-        <br>&bull; <strong>Busca Dinâmica:</strong> Pesquisa instantânea por nome ou categoria com resultados em tempo real.
-      </p>
+  <!-- ILUSTRAÇÃO 2: VITRINE DA LOJA -->
+  <div class="ui-mockup-frame avoid-break" style="margin-top: 12px;">
+    <div class="ui-mockup-bar">
+      <span>ILUSTRAÇÃO 2 &middot; Vitrine com Ofertas do Dia e Preços da Filial Ativa</span>
+      <div class="ui-mockup-dots"><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div></div>
+    </div>
+    <div class="ui-mockup-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #f8fafc; padding: 5px 8px; border-radius: 4px; border: 1px solid #e2e8f0;">
+        <span style="font-size: 8pt; font-weight: 700; color: #7c1214;">📍 Loja Selecionada: <strong>Grande Vitória</strong></span>
+        <span style="font-size: 7.5pt; color: #64748b;">Busca rápida por nome ou categoria</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; text-align: center; position: relative;">
+          <span style="position: absolute; top: 4px; left: 4px; background: #d9252a; color: #fff; font-size: 6.5pt; font-weight: 800; padding: 1px 4px; border-radius: 3px;">PROMOÇÃO</span>
+          <div style="font-size: 16pt; margin: 4px 0;">💊</div>
+          <strong style="font-size: 8pt; display: block; color: #1e293b; line-height: 1.2;">Dipirona 500mg c/ 10 Comprimidos</strong>
+          <div style="margin: 4px 0;"><span style="font-size: 7pt; text-decoration: line-through; color: #94a3b8;">R$ 9,90</span> <strong style="font-size: 9.5pt; color: #d9252a;">R$ 6,99</strong></div>
+          <button style="width: 100%; background: #7c1214; color: #fff; border: none; padding: 4px; border-radius: 3px; font-size: 7.5pt; font-weight: 700;">+ Adicionar</button>
+        </div>
+        <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; text-align: center;">
+          <div style="font-size: 16pt; margin: 4px 0;">🧴</div>
+          <strong style="font-size: 8pt; display: block; color: #1e293b; line-height: 1.2;">Álcool em Gel 70% 500ml</strong>
+          <div style="margin: 4px 0;"><strong style="font-size: 9.5pt; color: #1e293b;">R$ 12,50</strong></div>
+          <button style="width: 100%; background: #7c1214; color: #fff; border: none; padding: 4px; border-radius: 3px; font-size: 7.5pt; font-weight: 700;">+ Adicionar</button>
+        </div>
+        <div style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; text-align: center; position: relative;">
+          <span style="position: absolute; top: 4px; left: 4px; background: #d9252a; color: #fff; font-size: 6.5pt; font-weight: 800; padding: 1px 4px; border-radius: 3px;">DESTAQUE</span>
+          <div style="font-size: 16pt; margin: 4px 0;">🍊</div>
+          <strong style="font-size: 8pt; display: block; color: #1e293b; line-height: 1.2;">Vitamina C 1g Efervescente</strong>
+          <div style="margin: 4px 0;"><span style="font-size: 7pt; text-decoration: line-through; color: #94a3b8;">R$ 19,90</span> <strong style="font-size: 9.5pt; color: #d9252a;">R$ 14,90</strong></div>
+          <button style="width: 100%; background: #7c1214; color: #fff; border: none; padding: 4px; border-radius: 3px; font-size: 7.5pt; font-weight: 700;">+ Adicionar</button>
+        </div>
+      </div>
     </div>
   </div>
-
-  <div class="step-box">
-    <div class="step-number">3</div>
-    <div class="step-content">
-      <h4>Carrinho de Compras e Ajuste de Quantidades</h4>
-      <p>
-        O cliente clica em "Adicionar" nos produtos desejados. Na gaveta lateral do carrinho, ele confere os itens, altera quantidades, visualiza o valor de entrega da filial e a barra de progresso para <strong>Frete Grátis</strong>.
-      </p>
-    </div>
-  </div>
-
-  <div class="step-box">
-    <div class="step-number">4</div>
-    <div class="step-content">
-      <h4>Identificação e Endereço de Entrega Salvo</h4>
-      <p>
-        No checkout, o cliente informa Rua, Número, Bairro e Ponto de Referência. O sistema possui a função de <strong>salvar endereço</strong>, dispensando redigitar os dados nas próximas compras.
-      </p>
-    </div>
-  </div>
-
-  <div class="step-box">
-    <div class="step-number">5</div>
-    <div class="step-content">
-      <h4>Finalização e Envio Automatizado para o WhatsApp da Filial</h4>
-      <p>
-        Ao clicar em "Finalizar Pedido via WhatsApp", o site abre diretamente o WhatsApp oficial da unidade correspondente com a mensagem 100% formatada (Lista de itens, valores, dados de entrega e forma de pagamento).
-      </p>
-    </div>
-  </div>
-
-  <div class="card card-highlight avoid-break">
-    <h4 style="color:#0f172a; margin-bottom:6px;">Exemplo de Mensagem Recebida pelo Balconista no WhatsApp:</h4>
-    <pre style="background:#f1f5f9; padding:10px; border-radius:6px; font-size:7.5pt; font-family:Consolas, monospace; color:#1e293b; line-height:1.4;">
-*NOVO PEDIDO - DROGARIAS PIETRAO*
-*Unidade:* Sao Jose
-*Cliente:* Joao Silva
-*Itens do Pedido:*
-  - 2x Paracetamol 750mg c/ 20 Comprimidos - R$ 25,80
-  - 1x Vitamina C 1g Efervescente - R$ 14,90
-*Subtotal:* R$ 40,70 | *Taxa de Entrega:* R$ 5,00
-*VALOR TOTAL:* R$ 45,70
-*Pagamento:* Cartao de Credito / Debito na Entrega
-*Endereco:* Rua das Flores, 120 - Sao Jose (Proximo a praca)
-    </pre>
-  </div>
+  <div class="ui-caption">Figura 2: Grade de produtos com descontos e estoques específicos da unidade física escolhida.</div>
 
   <div class="footer-doc">
     <span>Drogarias Pietrão &middot; Proposta e Manual do Sistema</span>
     <span>Página 3</span>
   </div>
 
-  <!-- ==================== PÁGINA 4: MANUAL DO ADMIN - PARTE 1 ==================== -->
+  <!-- ==================== PÁGINA 4: CARRINHO E WHATSAPP ==================== -->
   <div class="page-break"></div>
 
   <div class="section-header">
-    <h2>3. Manual do Administrador (Gestão de Catálogo)</h2>
-    <span class="section-tag">Painel de Controle</span>
+    <h2>2.1. Carrinho e Roteamento de Pedidos no WhatsApp</h2>
+    <span class="section-tag">Checkout Automatizado</span>
   </div>
 
-  <p>
-    O Painel de Administração (<code>#admin</code>) foi desenhado para proporcionar autonomia total à equipe gestora e aos farmacêuticos, permitindo gerenciar produtos, preços por filial, pedidos, planilhas e métricas sem depender de programadores.
-  </p>
+  <div class="grid-2">
+    <!-- ILUSTRAÇÃO 3: CARRINHO -->
+    <div>
+      <div class="ui-mockup-frame avoid-break">
+        <div class="ui-mockup-bar">
+          <span>ILUSTRAÇÃO 3 &middot; Gaveta do Carrinho</span>
+          <div class="ui-mockup-dots"><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div></div>
+        </div>
+        <div class="ui-mockup-content">
+          <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <strong style="font-size: 8.5pt; color: #1e293b;">Itens Selecionados</strong>
+            <span style="font-size: 7.5pt; color: #7c1214; font-weight:700;">📍 Loja São José</span>
+          </div>
+          <div style="font-size: 7.5pt; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+              <span>2x Paracetamol 750mg c/ 20 Comprimidos</span>
+              <strong>R$ 25,80</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>1x Vitamina C 1g Efervescente</span>
+              <strong>R$ 14,90</strong>
+            </div>
+          </div>
+          <div style="background: #f8fafc; border-radius: 4px; padding: 6px; font-size: 7.5pt; margin-bottom: 8px;">
+            <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span> <span>R$ 40,70</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>Taxa de Entrega:</span> <span>R$ 5,00</span></div>
+            <div style="display:flex; justify-content:space-between; font-weight:800; color:#7c1214; border-top:1px dashed #cbd5e1; padding-top:4px; margin-top:4px;">
+              <span>Total:</span> <span>R$ 45,70</span>
+            </div>
+          </div>
+          <button style="width:100%; background:#25d366; color:#fff; border:none; padding:6px; border-radius:4px; font-size:8pt; font-weight:800; cursor:pointer;">
+            Finalizar Pedido via WhatsApp
+          </button>
+        </div>
+      </div>
+      <div class="ui-caption">Figura 3: Resumo do pedido e cálculo de entrega.</div>
+    </div>
 
-  <div class="callout-pro">
-    <strong>Como Acessar o Painel:</strong> Acesse o link oficial terminando em <code>#admin</code> ou clique em "Área Administrativa" no rodapé. Digite o e-mail <code>admin@pietrao.com</code> e a senha <code>admin123</code>.
-  </div>
-
-  <h3>Cadastrando um Novo Medicamento ou Produto</h3>
-
-  <div class="step-box">
-    <div class="step-number">1</div>
-    <div class="step-content">
-      <h4>Abertura do Formulário Limpo (+ Novo Produto)</h4>
-      <p>
-        Clique no botão destacado <strong>`+ Novo Produto`</strong> no topo do catálogo. O formulário abre limpo, sem campos obsoletos ou burocráticos.
-      </p>
+    <!-- ILUSTRAÇÃO 4: MENSAGEM NO WHATSAPP -->
+    <div>
+      <div class="ui-mockup-frame avoid-break">
+        <div class="ui-mockup-bar" style="background: #075e54; color: #ffffff;">
+          <span>ILUSTRAÇÃO 4 &middot; WhatsApp da Loja</span>
+          <span style="font-size: 7pt;">● Online</span>
+        </div>
+        <div class="ui-mockup-content" style="background: #efeae2; padding: 8px;">
+          <div style="background: #ffffff; border-radius: 6px; padding: 8px; font-size: 7pt; font-family: Consolas, monospace; line-height: 1.35; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+            <strong style="color:#075e54;">*NOVO PEDIDO - DROGARIAS PIETRAO*</strong><br>
+            *Unidade:* Sao Jose<br>
+            *Cliente:* Joao Silva<br>
+            *Itens do Pedido:*<br>
+            &bull; 2x Paracetamol 750mg - R$ 25,80<br>
+            &bull; 1x Vitamina C 1g - R$ 14,90<br>
+            *Subtotal:* R$ 40,70 | *Entrega:* R$ 5,00<br>
+            *VALOR TOTAL:* R$ 45,70<br>
+            *Pagamento:* Cartao na Entrega<br>
+            *Endereco:* Rua das Flores, 120 - Sao Jose
+          </div>
+        </div>
+      </div>
+      <div class="ui-caption">Figura 4: Mensagem pronta enviada diretamente ao WhatsApp da filial.</div>
     </div>
   </div>
 
-  <div class="step-box">
-    <div class="step-number">2</div>
-    <div class="step-content">
-      <h4>Preenchimento dos Dados Básicos</h4>
-      <p>
-        &bull; <strong>Nome do Medicamento:</strong> Ex.: <em>"Dipirona Monoidratada 500mg c/ 10 comprimidos"</em>.
-        <br>&bull; <strong>Categoria:</strong> Selecione na lista ou escolha <em>"+ Adicionar nova categoria..."</em> para criar uma categoria nova na hora.
-        <br>&bull; <strong>Foto do Produto:</strong> Cole a URL da imagem ou clique em <em>"Escolher foto do dispositivo"</em> para carregar do celular ou computador.
-      </p>
-    </div>
-  </div>
-
-  <div class="step-box">
-    <div class="step-number">3</div>
-    <div class="step-content">
-      <h4>O Menu Suspenso Interativo de Lojas / Bairros</h4>
-      <p>
-        Na seção <strong>"Disponível nas Filiais Físicas"</strong>, clique no botão <code>Escolher Lojas</code>:
-        <br>&bull; <strong>Caixas de Seleção de Lojas:</strong> Marque ou desmarque as unidades onde o produto estará disponível:
-        <br>&nbsp;&nbsp;[X] Grande Vitória &nbsp;&nbsp;[X] São José &nbsp;&nbsp;[X] Novo Aleixo &nbsp;&nbsp;[X] Nova Cidade
-        <br>&bull; <strong>Habilitação Dinâmica:</strong> Os campos de <strong>Preço Regular</strong>, <strong>Preço Promo</strong> e <strong>Estoque</strong> de cada unidade só aparecem na tela para os bairros marcados!
-        <br>&bull; <strong>Preenchimento Rápido em Massa:</strong> Se todas as filiais tiverem o mesmo valor, preencha a barra <code>Preço e Estoque Rápido</code> e clique em <em>"Aplicar a todas"</em>.
-      </p>
-    </div>
-  </div>
-
-  <div class="step-box">
-    <div class="step-number">4</div>
-    <div class="step-content">
-      <h4>Gravação Segura no Firebase Firestore</h4>
-      <p>
-        Clique em <strong>`Salvar Medicamento`</strong>. O sistema valida os campos, bloqueia envios duplicados, atualiza o Firestore instantaneamente e fecha o formulário com confirmação visual. O item já fica visível imediatamente na vitrine dos clientes!
-      </p>
-    </div>
-  </div>
-
-  <div class="card card-highlight avoid-break">
-    <h4>Regra de Visibilidade por Filial</h4>
-    <p style="font-size:8.5pt; color:#475569; margin:0;">
-      Se um produto estiver marcado apenas para <strong>São José</strong> e <strong>Nova Cidade</strong>, qualquer cliente que entrar no site e selecionar <strong>Grande Vitória</strong> ou <strong>Novo Aleixo</strong> NÃO verá esse produto na vitrine. Isso impede a venda de remédios que não estão no estoque físico daquela unidade!
+  <div class="card card-highlight avoid-break" style="margin-top: 10px;">
+    <h4>Fluxo 100% Automático de Entrega</h4>
+    <p style="font-size: 8pt; color: #475569; margin: 0;">
+      O cliente não precisa digitar nada manualmente. Ao clicar em finalizar, o site monta o link oficial da API do WhatsApp com o telefone da filial correspondente e o texto pré-formatado. O balconista só precisa ler, responder "Pedido confirmado!" e despachar o motoboy.
     </p>
   </div>
 
@@ -651,73 +695,84 @@
     <span>Página 4</span>
   </div>
 
-  <!-- ==================== PÁGINA 5: MANUAL DO ADMIN - PARTE 2 ==================== -->
+  <!-- ==================== PÁGINA 5: MANUAL DO ADMIN (CADASTRO E DROPDOWN) ==================== -->
   <div class="page-break"></div>
 
   <div class="section-header">
-    <h2>4. Gestão de Planilhas, Vendas e Configurações</h2>
-    <span class="section-tag">Recursos Avançados</span>
+    <h2>3. Manual do Administrador: Gestão de Catálogo</h2>
+    <span class="section-tag">Painel Gestor</span>
   </div>
 
-  <h3>Importação e Exportação com Microsoft Excel</h3>
   <p>
-    O sistema possui um leitor e gerador de planilhas Excel integrado (<code>xlsx.full.min.js</code>), permitindo manipular milhares de itens de uma só vez.
+    No painel administrativo (<code>#admin</code>), o gestor tem controle total sobre o catálogo de produtos e a disponibilidade em cada uma das 4 unidades físicas:
   </p>
 
-  <div class="grid-2">
-    <div class="card">
-      <h4>Baixar Planilha Excel</h4>
-      <p style="font-size:8.5pt;">Gera e baixa um arquivo <code>.xlsx</code> com todas as colunas do catálogo (ID, Nome, Categoria, Preço, Promoção, Estoque e Filiais) pronto para inventário ou edição em massa.</p>
+  <!-- ILUSTRAÇÃO 5: MODAL DE CADASTRO COM O NOVO MENU SUSPENSO -->
+  <div class="ui-mockup-frame avoid-break">
+    <div class="ui-mockup-bar">
+      <span>ILUSTRAÇÃO 5 &middot; Cadastro de Medicamento com a Nova Aba Suspensa de Lojas Físicas</span>
+      <div class="ui-mockup-dots"><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div></div>
     </div>
-    <div class="card">
-      <h4>Importar Planilha Excel</h4>
-      <p style="font-size:8.5pt;">Carrega uma planilha e sincroniza todos os produtos para o banco de dados do Firebase em lotes otimizados (<code>writeBatch</code>), cadastrando ou atualizando automaticamente.</p>
+    <div class="ui-mockup-content">
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 8px;">
+        <div>
+          <label style="font-size: 7.5pt; font-weight: 700; display: block;">Nome do Medicamento *</label>
+          <input style="width: 100%; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 8pt;" value="Amoxicilina 500mg c/ 21 Cápsulas" readonly />
+        </div>
+        <div>
+          <label style="font-size: 7.5pt; font-weight: 700; display: block;">Categoria *</label>
+          <select style="width: 100%; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 8pt;" disabled><option>Medicamentos</option></select>
+        </div>
+      </div>
+
+      <!-- SEÇÃO DE FILIAIS COM O MENU SUSPENSO -->
+      <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+          <strong style="font-size: 8.5pt; color: #1e293b;">🏬 Disponível nas Filiais Físicas *</strong>
+          <span style="font-size: 7pt; color: #7c1214; font-weight: 700;">(Aba Suspensa com Caixas de Seleção)</span>
+        </div>
+        <small style="color: #64748b; font-size: 7.5pt; display: block; margin-bottom: 6px;">Marque as lojas onde o medicamento estará disponível para os clientes:</small>
+
+        <!-- Dropdown aberto com caixas de seleção -->
+        <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 8px; background: #ffffff; margin-bottom: 6px;">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 7.5pt; font-weight: 600;">
+            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" checked disabled> 📍 Grande Vitória</label>
+            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" checked disabled> 📍 São José</label>
+            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" disabled> 📍 Novo Aleixo</label>
+            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" checked disabled> 📍 Nova Cidade</label>
+          </div>
+        </div>
+
+        <!-- Preenchimento Rápido -->
+        <div style="background: #fffafa; border: 1px dashed #fecaca; border-radius: 4px; padding: 6px; font-size: 7.5pt;">
+          <strong style="color: #7c1214;">⚡ Preço e Estoque Rápido (Aplicar para todas as lojas marcadas):</strong>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 3px;">
+            <input style="padding: 3px 5px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 7.5pt;" value="Preço Regular: R$ 28,90" readonly />
+            <input style="padding: 3px 5px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 7.5pt;" value="Preço Promo: R$ 24,90" readonly />
+            <input style="padding: 3px 5px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 7.5pt;" value="Estoque: 15 un." readonly />
+          </div>
+        </div>
+      </div>
+
+      <button style="width: 100%; background: #7c1214; color: #ffffff; border: none; padding: 6px; border-radius: 4px; font-size: 8.5pt; font-weight: 800;">
+        Salvar Medicamento no Firebase Firestore
+      </button>
     </div>
   </div>
+  <div class="ui-caption">Figura 5: Modal de cadastro com seleção interativa de filiais e campos de preços dinâmicos.</div>
 
-  <h3>As 4 Abas do Painel Administrativo</h3>
-
-  <table>
-    <thead>
-      <tr>
-        <th style="width: 25%;">Aba do Painel</th>
-        <th style="width: 45%;">Funcionalidades Principais</th>
-        <th style="width: 30%;">Objetivo Operacional</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>Catálogo</strong></td>
-        <td>Adicionar produtos, editar preços, gerenciar estoque por filial, filtrar por unidade ou categoria, busca rápida.</td>
-        <td>Manutenção diária de preços e produtos em tempo real.</td>
-      </tr>
-      <tr>
-        <td><strong>Vendas &amp; Métricas</strong></td>
-        <td>Gráficos de faturamento, total de pedidos, ticket médio, produtos mais vendidos e faturamento por categoria.</td>
-        <td>Tomada de decisões comerciais e planejamento de compras.</td>
-      </tr>
-      <tr>
-        <td><strong>Clientes</strong></td>
-        <td>Visualização de clientes cadastrados, endereços frequentes e histórico de pedidos.</td>
-        <td>Acompanhamento da base de clientes e relacionamento.</td>
-      </tr>
-      <tr>
-        <td><strong>Configurações</strong></td>
-        <td>Telefones de WhatsApp das 4 filiais, horários de abertura/fechamento, taxa de frete, troca de senha admin.</td>
-        <td>Parâmetros da loja e segurança do sistema.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h3>Configurações Críticas da Loja</h3>
-  <div class="grid-2">
-    <div class="card card-primary">
-      <h4>WhatsApps das 4 Filiais</h4>
-      <p style="font-size:8pt; color:#475569;">Configure o número com DDD de cada uma das 4 unidades (Grande Vitória, São José, Novo Aleixo, Nova Cidade). O site direciona os pedidos para o número correto de forma 100% automática.</p>
+  <div class="grid-2" style="margin-top: 8px;">
+    <div class="card">
+      <h4>Como Funciona a Visibilidade por Filial</h4>
+      <p style="font-size: 7.5pt; color: #475569;">
+        Ao desmarcar uma unidade física (ex.: <em>Novo Aleixo</em>), o medicamento receberá automaticamente status inativo e estoque zero para aquela loja, não aparecendo para os clientes daquela região.
+      </p>
     </div>
-    <div class="card card-primary">
-      <h4>Taxa de Entrega e Frete Grátis</h4>
-      <p style="font-size:8pt; color:#475569;">Defina a taxa de entrega padrão em Reais (ex.: R$ 5,00) e o valor mínimo de compras para liberar o benefício de Frete Grátis aos clientes (ex.: R$ 80,00).</p>
+    <div class="card">
+      <h4>Trava de Segurança Anti-Duplicação</h4>
+      <p style="font-size: 7.5pt; color: #475569;">
+        O botão <em>"Salvar Medicamento"</em> possui trava inteligente de envio único (<code>isSavingProduct</code>), impedindo cadastros duplicados acidentais no banco de dados.
+      </p>
     </div>
   </div>
 
@@ -726,44 +781,44 @@
     <span>Página 5</span>
   </div>
 
-  <!-- ==================== PÁGINA 6: INFORMAÇÕES TÉCNICAS E LINKS ==================== -->
+  <!-- ==================== PÁGINA 6: EXCEL, CONFIGURAÇÕES E FAQ ==================== -->
   <div class="page-break"></div>
 
   <div class="section-header">
-    <h2>5. Ficha Técnica, Acessos e Suporte</h2>
-    <span class="section-tag">Dados Técnicos</span>
+    <h2>4. Gestão de Planilhas, Configurações e FAQ</h2>
+    <span class="section-tag">Recursos Avançados</span>
   </div>
 
-  <p>
-    A infraestrutura foi construída com tecnologias web modernas, seguras e com alta disponibilidade garantida por servidores em nuvem do Google e GitHub.
-  </p>
-
-  <div class="card card-highlight" style="margin-bottom: 18px;">
-    <h4>Links Oficiais da Plataforma:</h4>
-    <table style="margin: 6px 0;">
-      <tbody>
-        <tr>
-          <td><strong>Site Público (Loja / Vitrine):</strong></td>
-          <td><a href="https://drogariaspietrao-ctrl.github.io/Drograrias-Pietrao2/" style="color:#d9252a; font-weight:700; text-decoration:none;">https://drogariaspietrao-ctrl.github.io/Drograrias-Pietrao2/</a></td>
-        </tr>
-        <tr>
-          <td><strong>Painel Administrativo:</strong></td>
-          <td><a href="https://drogariaspietrao-ctrl.github.io/Drograrias-Pietrao2/#admin" style="color:#d9252a; font-weight:700; text-decoration:none;">https://drogariaspietrao-ctrl.github.io/Drograrias-Pietrao2/#admin</a></td>
-        </tr>
-        <tr>
-          <td><strong>Repositório do Código (GitHub):</strong></td>
-          <td><a href="https://github.com/drogariaspietrao-ctrl/Drograrias-Pietrao2" style="color:#d9252a; font-weight:700; text-decoration:none;">https://github.com/drogariaspietrao-ctrl/Drograrias-Pietrao2</a></td>
-        </tr>
-        <tr>
-          <td><strong>Console do Banco de Dados (Firebase):</strong></td>
-          <td><a href="https://console.firebase.google.com/project/drogarias-pietrao/firestore" style="color:#d9252a; font-weight:700; text-decoration:none;">https://console.firebase.google.com/project/drogarias-pietrao/firestore</a></td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- ILUSTRAÇÃO 6: CONFIGURAÇÕES E WHATSAPP DAS 4 FILIAIS -->
+  <div class="ui-mockup-frame avoid-break">
+    <div class="ui-mockup-bar">
+      <span>ILUSTRAÇÃO 6 &middot; Aba de Configurações: Telefones de WhatsApp das 4 Filiais</span>
+      <div class="ui-mockup-dots"><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div><div class="ui-mockup-dot"></div></div>
+    </div>
+    <div class="ui-mockup-content">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 7.5pt;">
+        <div style="border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px;">
+          <label style="font-weight: 700; display: block; color: #1e293b;">📍 WhatsApp Grande Vitória</label>
+          <input style="width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 7.5pt;" value="5592991234567" readonly />
+        </div>
+        <div style="border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px;">
+          <label style="font-weight: 700; display: block; color: #1e293b;">📍 WhatsApp São José</label>
+          <input style="width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 7.5pt;" value="5592997654321" readonly />
+        </div>
+        <div style="border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px;">
+          <label style="font-weight: 700; display: block; color: #1e293b;">📍 WhatsApp Novo Aleixo</label>
+          <input style="width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 7.5pt;" value="5592998887777" readonly />
+        </div>
+        <div style="border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px;">
+          <label style="font-weight: 700; display: block; color: #1e293b;">📍 WhatsApp Nova Cidade</label>
+          <input style="width: 100%; padding: 4px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 7.5pt;" value="5592995554444" readonly />
+        </div>
+      </div>
+    </div>
   </div>
+  <div class="ui-caption">Figura 6: Cada pedido gerado no site é roteado automaticamente para o WhatsApp da filial correspondente.</div>
 
-  <h3>Tabela de Acessos e Credenciais Administrativas</h3>
-
+  <h3>Tabela de Acessos e Credenciais</h3>
   <table>
     <thead>
       <tr>
@@ -797,29 +852,22 @@
 
   <h3>Perguntas Frequentes (FAQ Operacional)</h3>
 
-  <div class="card" style="margin-bottom: 10px;">
-    <strong>P: Como adicionar um medicamento que só tem na loja do São José?</strong>
-    <p style="font-size: 8.5pt; color: #475569; margin-top: 3px;">
-      R: No menu <em>"+ Novo Produto"</em>, abra a aba suspensa <em>"Escolher Lojas"</em>, desmarque todas e marque apenas <em>"São José"</em>. Preencha o preço e clique em salvar. O produto só ficará visível para clientes de São José.
-    </p>
-  </div>
-
-  <div class="card" style="margin-bottom: 10px;">
-    <strong>P: Os preços e promoções atualizam sozinhos no celular do cliente?</strong>
-    <p style="font-size: 8.5pt; color: #475569; margin-top: 3px;">
-      R: Sim! Graças ao ouvinte em tempo real do Google Firestore (<code>onSnapshot</code>), qualquer alteração feita no Painel Admin reflete instantaneamente nas telas de todos os clientes sem precisar recarregar o site.
+  <div class="card" style="margin-bottom: 6px;">
+    <strong style="font-size: 8pt;">P: Como cadastrar um remédio exclusivo de uma única loja?</strong>
+    <p style="font-size: 7.5pt; color: #475569; margin: 2px 0 0 0;">
+      R: No menu <em>"+ Novo Produto"</em>, abra o seletor <em>"Escolher Lojas"</em>, desmarque as demais e deixe marcada apenas a loja desejada. Salve e o produto só aparecerá para aquela unidade.
     </p>
   </div>
 
   <div class="card">
-    <strong>P: O que acontece se o cliente estiver fora do horário de funcionamento?</strong>
-    <p style="font-size: 8.5pt; color: #475569; margin-top: 3px;">
-      R: O site exibe um aviso informando que a filial física está fechada, indicando o horário de reabertura, mas permite que o cliente monte o carrinho e envie a mensagem no WhatsApp para ser atendido na abertura.
+    <strong style="font-size: 8pt;">P: Como funciona a importação de planilhas Excel?</strong>
+    <p style="font-size: 7.5pt; color: #475569; margin: 2px 0 0 0;">
+      R: Clique em <em>"Baixar Planilha Excel"</em> para ter o modelo oficial com as colunas. Edite os preços e clique em <em>"Importar Planilha"</em> para sincronizar milhares de produtos em segundos.
     </p>
   </div>
 
   <div class="footer-doc">
-    <span>Drogarias Pietrão &middot; Proposta e Manual do Sistema &middot; Manaus - AM</span>
+    <span>Drogarias Pietrão &middot; Proposta e Manual Ilustrado &middot; Manaus - AM</span>
     <span>Página 6</span>
   </div>
 
