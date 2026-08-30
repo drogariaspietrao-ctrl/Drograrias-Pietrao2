@@ -1244,22 +1244,27 @@ window.handleCheckoutSubmit = async function(e) {
     console.error('[Firebase Firestore] Erro ao gravar pedido:', err);
   }
 
-  const itemLines = orderItems.map(i => `- ${i.qty}x ${i.name} (${money(i.price * i.qty)})`);
+  const itemLines = orderItems.map(i => `  - ${i.qty}x ${i.name} (${money(i.price * i.qty)})`);
   const whatsappMsg = [
-    `🛒 *NOVO PEDIDO - DROGARIAS PIETRÃO*`,
-    `📍 *Unidade de Atendimento:* ${branchName}`,
-    `📅 *Data:* ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+    `*=================================*`,
+    `*NOVO PEDIDO - DROGARIAS PIETRAO*`,
+    `*=================================*`,
     ``,
-    `📦 *Itens do Pedido:*`,
+    `*UNIDADE DE ATENDIMENTO:* ${branchName}`,
+    `*DATA:* ${new Date().toLocaleDateString('pt-BR')} as ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+    ``,
+    `*ITENS DO PEDIDO:*`,
     itemLines.join('\n'),
     ``,
-    `💵 *Subtotal:* ${money(subtotal)}`,
-    `🛵 *Taxa de Entrega:* ${isFreeShipping ? 'Grátis' : money(deliveryFeeCharged)}`,
-    `💰 *Total do Pedido: ${money(finalTotal)}*`,
+    `---------------------------------`,
+    `*Subtotal:* ${money(subtotal)}`,
+    `*Taxa de Entrega:* ${isFreeShipping ? 'Gratis' : money(deliveryFeeCharged)}`,
+    `*TOTAL DO PEDIDO: ${money(finalTotal)}*`,
+    `---------------------------------`,
     ``,
-    `💳 *Forma de Pagamento:* ${payment}`,
-    `📍 *Endereço de Entrega:* ${addressFull}`,
-    notes ? `📝 *Observações:* ${notes}` : ``
+    `*Forma de Pagamento:* ${payment}`,
+    `*Endereco de Entrega:* ${addressFull}`,
+    notes ? `*Observacoes:* ${notes}` : ``
   ].filter(Boolean).join('\n');
 
   cart = [];
@@ -1276,7 +1281,7 @@ window.handleCheckoutSubmit = async function(e) {
 window.openDirectWhatsApp = function() {
   const branchWa = getBranchWhatsApp(currentBranch);
   const branchName = getBranchName(currentBranch);
-  const msg = `Olá! Gostaria de falar com o atendimento da Drogarias Pietrão (Unidade ${branchName}).`;
+  const msg = `Ola! Gostaria de falar com o atendimento da Drogarias Pietrao (Unidade ${branchName}).`;
   window.open(`https://wa.me/${branchWa}?text=${encodeURIComponent(msg)}`, '_blank');
 };
 
