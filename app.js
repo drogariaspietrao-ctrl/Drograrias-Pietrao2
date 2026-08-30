@@ -1244,27 +1244,23 @@ window.handleCheckoutSubmit = async function(e) {
     console.error('[Firebase Firestore] Erro ao gravar pedido:', err);
   }
 
-  const itemLines = orderItems.map(i => `  - ${i.qty}x ${i.name} (${money(i.price * i.qty)})`);
+  const itemLines = orderItems.map(i => `${i.qty}x ${i.name} (${money(i.price * i.qty)})`);
   const whatsappMsg = [
-    `*=================================*`,
-    `*NOVO PEDIDO - DROGARIAS PIETRAO*`,
-    `*=================================*`,
+    `NOVO PEDIDO - DROGARIAS PIETRAO`,
     ``,
-    `*UNIDADE DE ATENDIMENTO:* ${branchName}`,
-    `*DATA:* ${new Date().toLocaleDateString('pt-BR')} as ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+    `Unidade de Atendimento: ${branchName}`,
+    `Data: ${new Date().toLocaleDateString('pt-BR')} as ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
     ``,
-    `*ITENS DO PEDIDO:*`,
+    `Itens do Pedido:`,
     itemLines.join('\n'),
     ``,
-    `---------------------------------`,
-    `*Subtotal:* ${money(subtotal)}`,
-    `*Taxa de Entrega:* ${isFreeShipping ? 'Gratis' : money(deliveryFeeCharged)}`,
-    `*TOTAL DO PEDIDO: ${money(finalTotal)}*`,
-    `---------------------------------`,
+    `Subtotal: ${money(subtotal)}`,
+    `Taxa de Entrega: ${isFreeShipping ? 'Gratis' : money(deliveryFeeCharged)}`,
+    `Total do Pedido: ${money(finalTotal)}`,
     ``,
-    `*Forma de Pagamento:* ${payment}`,
-    `*Endereco de Entrega:* ${addressFull}`,
-    notes ? `*Observacoes:* ${notes}` : ``
+    `Forma de Pagamento: ${payment}`,
+    `Endereco de Entrega: ${addressFull}`,
+    notes ? `Observacoes: ${notes}` : ``
   ].filter(Boolean).join('\n');
 
   cart = [];
