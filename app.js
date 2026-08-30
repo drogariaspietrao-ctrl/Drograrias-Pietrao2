@@ -1245,24 +1245,28 @@ window.handleCheckoutSubmit = async function(e) {
   }
 
   const cleanPhone = (branchWa || '').replace(/\D/g, '');
-  const itemLines = orderItems.map(i => `📦 ${i.qty}x ${i.name} - ${money(i.price * i.qty)}`);
+  const itemLines = orderItems.map(i => `• ${i.qty}x ${i.name} — ${money(i.price * i.qty)}`);
   
   const whatsappMsg = [
     `🏬 *NOVO PEDIDO - DROGARIAS PIETRÃO*`,
-    `📍 *Unidade de Atendimento:* ${branchName}`,
+    `---------------------------------`,
+    `📍 *Unidade:* ${branchName}`,
     `🕒 *Data:* ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
     ``,
-    `📋 *Itens do Pedido:*`,
+    `📋 *ITENS DO PEDIDO*`,
     itemLines.join('\n'),
     ``,
+    `---------------------------------`,
     `💵 *Subtotal:* ${money(subtotal)}`,
     `🛵 *Taxa de Entrega:* ${isFreeShipping ? 'Grátis' : money(deliveryFeeCharged)}`,
-    `💰 *Total do Pedido:* *${money(finalTotal)}*`,
+    `💰 *TOTAL:* *${money(finalTotal)}*`,
+    `💳 *Pagamento:* ${payment}`,
+    `---------------------------------`,
     ``,
-    `💳 *Forma de Pagamento:* ${payment}`,
-    `📍 *Endereço de Entrega:* ${addressFull}`,
-    notes ? `📝 *Observações:* ${notes}` : ``
-  ].filter(Boolean).join('\n');
+    `📍 *ENDEREÇO DE ENTREGA*`,
+    `${addressFull}`,
+    notes ? `\n📝 *Observações:* ${notes}` : ``
+  ].filter(line => line !== null && line !== undefined).join('\n');
 
   cart = [];
   renderStore();
