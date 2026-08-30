@@ -1244,23 +1244,24 @@ window.handleCheckoutSubmit = async function(e) {
     console.error('[Firebase Firestore] Erro ao gravar pedido:', err);
   }
 
-  const itemLines = orderItems.map(i => `${i.qty}x ${i.name} (${money(i.price * i.qty)})`);
+  const cleanPhone = (branchWa || '').replace(/\D/g, '');
+  const itemLines = orderItems.map(i => `📦 ${i.qty}x ${i.name} - ${money(i.price * i.qty)}`);
+  
   const whatsappMsg = [
-    `NOVO PEDIDO - DROGARIAS PIETRAO`,
+    `🏬 *NOVO PEDIDO - DROGARIAS PIETRÃO*`,
+    `📍 *Unidade de Atendimento:* ${branchName}`,
+    `🕒 *Data:* ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
     ``,
-    `Unidade de Atendimento: ${branchName}`,
-    `Data: ${new Date().toLocaleDateString('pt-BR')} as ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-    ``,
-    `Itens do Pedido:`,
+    `📋 *Itens do Pedido:*`,
     itemLines.join('\n'),
     ``,
-    `Subtotal: ${money(subtotal)}`,
-    `Taxa de Entrega: ${isFreeShipping ? 'Gratis' : money(deliveryFeeCharged)}`,
-    `Total do Pedido: ${money(finalTotal)}`,
+    `💵 *Subtotal:* ${money(subtotal)}`,
+    `🛵 *Taxa de Entrega:* ${isFreeShipping ? 'Grátis' : money(deliveryFeeCharged)}`,
+    `💰 *Total do Pedido:* *${money(finalTotal)}*`,
     ``,
-    `Forma de Pagamento: ${payment}`,
-    `Endereco de Entrega: ${addressFull}`,
-    notes ? `Observacoes: ${notes}` : ``
+    `💳 *Forma de Pagamento:* ${payment}`,
+    `📍 *Endereço de Entrega:* ${addressFull}`,
+    notes ? `📝 *Observações:* ${notes}` : ``
   ].filter(Boolean).join('\n');
 
   cart = [];
@@ -1270,15 +1271,17 @@ window.handleCheckoutSubmit = async function(e) {
   $('#checkout-modal')?.close();
   closeCart();
 
-  const url = `https://wa.me/${branchWa}?text=${encodeURIComponent(whatsappMsg)}`;
+  const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(whatsappMsg)}`;
   window.open(url, '_blank');
 };
 
 window.openDirectWhatsApp = function() {
   const branchWa = getBranchWhatsApp(currentBranch);
+  const cleanPhone = (branchWa || '').replace(/\D/g, '');
   const branchName = getBranchName(currentBranch);
-  const msg = `Ola! Gostaria de falar com o atendimento da Drogarias Pietrao (Unidade ${branchName}).`;
-  window.open(`https://wa.me/${branchWa}?text=${encodeURIComponent(msg)}`, '_blank');
+  const msg = `Olá! Gostaria de falar com o atendimento da Drogarias Pietrão (Unidade ${branchName}).`;
+  const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
 };
 
 // ==========================================================================
