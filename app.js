@@ -1510,6 +1510,12 @@ function updateStockAlertBadge() {
   }
 }
 
+window.setAdminBranchFilter = function(branchId) {
+  const select = $('#admin-branch-filter');
+  if (select) select.value = branchId;
+  renderAdminCatalog();
+};
+
 // ABA 1: CATÁLOGO
 function renderAdminCatalog() {
   const searchTerm = ($('#admin-search')?.value || '').trim().toLowerCase();
@@ -1518,6 +1524,11 @@ function renderAdminCatalog() {
   const branchFilter = $('#admin-branch-filter')?.value || 'all';
   currentAdminBranchFilter = branchFilter;
   const threshold = config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold;
+
+  // Sincroniza botões de pílulas de filiais no topo
+  $$('.branch-pill-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.branch === branchFilter);
+  });
 
   const catFilterEl = $('#admin-category-filter');
   if (catFilterEl && catFilterEl.options.length <= 1) {
@@ -1550,20 +1561,65 @@ function renderAdminCatalog() {
     return matchSearch && matchCat && matchStock;
   });
 
-  const totalStockAll = db.products.reduce((acc, p) => {
-    return acc + Object.keys(DEFAULT_BRANCHES).reduce((sum, bId) => sum + getProductBranchData(p, bId).stock, 0);
-  }, 0);
-  const activePromos = db.products.filter(p => {
-    return Object.keys(DEFAULT_BRANCHES).some(bId => getProductBranchData(p, bId).promo);
-  }).length;
-  const lowStockCount = db.products.filter(p => {
-    return Object.keys(DEFAULT_BRANCHES).some(bId => getProductBranchData(p, bId).stock <= threshold);
-  }).length;
+  // Cálculo das Métricas (Geral da Rede vs. Unidade Específica)
+  const branchName = branchFilter === 'all' ? 'Toda a Rede' : getBranchName(branchFilter);
 
-  $('#stat-products').textContent = db.products.length;
-  $('#stat-stock').textContent = `${totalStockAll} un. (Rede)`;
-  $('#stat-promos').textContent = activePromos;
-  $('#stat-low-stock').textContent = lowStockCount;
+  if (branchFilter === 'all') {
+    const totalStockAll = db.products.reduce((acc, p) => {
+      return acc + Object.keys(DEFAULT_BRANCHES).reduce((sum, bId) => sum + getProductBranchData(p, bId).stock, 0);
+    }, 0);
+    const activePromos = db.products.filter(p => {
+      return Object.keys(DEFAULT_BRANCHES).some(bId => getProductBranchData(p, bId).promo);
+    }).length;
+    const lowStockCount = db.products.filter(p => {
+      return Object.keys(DEFAULT_BRANCHES).some(bId => getProductBranchData(p, bId).stock <= threshold);
+    }).length;
+
+    if ($('#stat-products-title')) $('#stat-products-title').textContent = 'Produtos cadastrados';
+    if ($('#stat-products')) $('#stat-products').textContent = db.products.length;
+    if ($('#stat-products-scope')) $('#stat-products-scope').textContent = 'Toda a Rede (4 Filiais)';
+
+    if ($('#stat-promos-title')) $('#stat-promos-title').textContent = 'Promoções ativas';
+    if ($('#stat-promos')) $('#stat-promos').textContent = activePromos;
+    if ($('#stat-promos-scope')) $('#stat-promos-scope').textContent = 'Em todas as lojas';
+
+    if ($('#stat-stock-title')) $('#stat-stock-title').textContent = 'Total em estoque';
+    if ($('#stat-stock')) $('#stat-stock').textContent = `${totalStockAll} un.`;
+    if ($('#stat-stock-scope')) $('#stat-stock-scope').textContent = 'Soma das 4 filiais';
+
+    if ($('#stat-low-stock-title')) $('#stat-low-stock-title').textContent = 'Estoque baixo / esgotado';
+    if ($('#stat-low-stock')) $('#stat-low-stock').textContent = lowStockCount;
+    if ($('#stat-low-stock-scope')) $('#stat-low-stock-scope').textContent = 'Com alerta na rede';
+  } else {
+    // Cálculo exclusivo para a filial selecionada
+    const branchActiveProducts = db.products.filter(p => {
+      const b = getProductBranchData(p, branchFilter);
+      return b.stock > 0 || b.price > 0;
+    });
+
+    const branchStockTotal = db.products.reduce((sum, p) => sum + getProductBranchData(p, branchFilter).stock, 0);
+    const branchPromos = db.products.filter(p => getProductBranchData(p, branchFilter).promo).length;
+    const branchLowStock = db.products.filter(p => {
+      const b = getProductBranchData(p, branchFilter);
+      return b.stock <= threshold;
+    }).length;
+
+    if ($('#stat-products-title')) $('#stat-products-title').textContent = `Produtos em ${branchName}`;
+    if ($('#stat-products')) $('#stat-products').textContent = `${branchActiveProducts.length} itens`;
+    if ($('#stat-products-scope')) $('#stat-products-scope').textContent = `Disponíveis nesta unidade`;
+
+    if ($('#stat-promos-title')) $('#stat-promos-title').textContent = `Promoções em ${branchName}`;
+    if ($('#stat-promos')) $('#stat-promos').textContent = branchPromos;
+    if ($('#stat-promos-scope')) $('#stat-promos-scope').textContent = `Ativas nesta filial`;
+
+    if ($('#stat-stock-title')) $('#stat-stock-title').textContent = `Estoque em ${branchName}`;
+    if ($('#stat-stock')) $('#stat-stock').textContent = `${branchStockTotal} un.`;
+    if ($('#stat-stock-scope')) $('#stat-stock-scope').textContent = `Físico desta unidade`;
+
+    if ($('#stat-low-stock-title')) $('#stat-low-stock-title').textContent = `Estoque Baixo em ${branchName}`;
+    if ($('#stat-low-stock')) $('#stat-low-stock').textContent = branchLowStock;
+    if ($('#stat-low-stock-scope')) $('#stat-low-stock-scope').textContent = `Críticos nesta unidade`;
+  }
 
   const tbody = $('#admin-product-list');
   if (!tbody) return;
