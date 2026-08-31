@@ -1511,8 +1511,7 @@ function updateStockAlertBadge() {
 }
 
 window.setAdminBranchFilter = function(branchId) {
-  const select = $('#admin-branch-filter');
-  if (select) select.value = branchId;
+  currentAdminBranchFilter = branchId || 'all';
   renderAdminCatalog();
 };
 
@@ -1521,8 +1520,7 @@ function renderAdminCatalog() {
   const searchTerm = ($('#admin-search')?.value || '').trim().toLowerCase();
   const categoryFilter = $('#admin-category-filter')?.value || 'all';
   const stockFilter = $('#admin-stock-filter')?.value || 'all';
-  const branchFilter = $('#admin-branch-filter')?.value || 'all';
-  currentAdminBranchFilter = branchFilter;
+  const branchFilter = currentAdminBranchFilter || 'all';
   const threshold = config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold;
 
   // Sincroniza botões de pílulas de filiais no topo
