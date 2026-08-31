@@ -598,34 +598,52 @@
               </div>
             </div>
 
-            <!-- Cards de Estatísticas do Catálogo -->
+            <!-- Barra de Seleção de Unidade para Métricas e Catálogo -->
+            <div class="admin-branch-pills-bar">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.82rem; font-weight: 800; color: var(--ink);">🏬 Visualizar Métricas por Unidade:</span>
+              </div>
+              <div class="admin-branch-pills" id="admin-branch-pills">
+                <button type="button" class="branch-pill-btn active" data-branch="all" onclick="setAdminBranchFilter('all')">🏬 Toda a Rede (4 Filiais)</button>
+                <button type="button" class="branch-pill-btn" data-branch="grande_vitoria" onclick="setAdminBranchFilter('grande_vitoria')">📍 Grande Vitória</button>
+                <button type="button" class="branch-pill-btn" data-branch="sao_jose" onclick="setAdminBranchFilter('sao_jose')">📍 São José</button>
+                <button type="button" class="branch-pill-btn" data-branch="novo_aleixo" onclick="setAdminBranchFilter('novo_aleixo')">📍 Novo Aleixo</button>
+                <button type="button" class="branch-pill-btn" data-branch="nova_cidade" onclick="setAdminBranchFilter('nova_cidade')">📍 Nova Cidade</button>
+              </div>
+            </div>
+
+            <!-- Cards de Estatísticas do Catálogo com Identificador da Unidade -->
             <div class="admin-stats">
               <article class="stat-card">
                 <div class="stat-icon">▣</div>
                 <div>
-                  <span>Produtos cadastrados</span>
+                  <span id="stat-products-title">Produtos cadastrados</span>
                   <strong id="stat-products">0</strong>
+                  <small id="stat-products-scope" class="stat-scope-badge">Toda a Rede</small>
                 </div>
               </article>
               <article class="stat-card">
                 <div class="stat-icon">✦</div>
                 <div>
-                  <span>Promoções ativas</span>
+                  <span id="stat-promos-title">Promoções ativas</span>
                   <strong id="stat-promos">0</strong>
+                  <small id="stat-promos-scope" class="stat-scope-badge">Toda a Rede</small>
                 </div>
               </article>
               <article class="stat-card">
                 <div class="stat-icon">▤</div>
                 <div>
-                  <span>Total em estoque</span>
+                  <span id="stat-stock-title">Total em estoque</span>
                   <strong id="stat-stock">0 un.</strong>
+                  <small id="stat-stock-scope" class="stat-scope-badge">Soma das 4 filiais</small>
                 </div>
               </article>
               <article class="stat-card warning-stat">
                 <div class="stat-icon">▲</div>
                 <div>
-                  <span>Estoque baixo / esgotado</span>
+                  <span id="stat-low-stock-title">Estoque baixo / esgotado</span>
                   <strong id="stat-low-stock">0</strong>
+                  <small id="stat-low-stock-scope" class="stat-scope-badge">Toda a Rede</small>
                 </div>
               </article>
             </div>
@@ -1170,6 +1188,6 @@
     <script src="xlsx.full.min.js"></script>
     <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>'); }</script>
     <!-- Script Principal como Módulo ES6 com Firebase -->
-    <script type="module" src="app.js?v=6.0"></script>
+    <script type="module" src="app.js?v=6.1"></script>
   </body>
 </html>
