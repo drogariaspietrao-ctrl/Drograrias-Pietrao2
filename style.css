@@ -2743,3 +2743,59 @@ th {
   font-weight: 800;
 }
 
+/* ==========================================================================
+   BARRA DE SELEÇÃO DE FILIAL NO DASHBOARD DO ADMIN
+   ========================================================================== */
+.admin-branch-pills-bar {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.admin-branch-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.branch-pill-btn {
+  background: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.branch-pill-btn:hover {
+  background: #fee2e2;
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.branch-pill-btn.active {
+  background: var(--red);
+  border-color: var(--red);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(217, 37, 42, 0.25);
+}
+
+.stat-scope-badge {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
