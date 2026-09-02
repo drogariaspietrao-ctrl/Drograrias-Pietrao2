@@ -715,6 +715,16 @@
             <!-- Filtros de Vendas -->
             <div class="sales-filters">
               <label>
+                Unidade / Filial
+                <select id="sales-branch">
+                  <option value="all">🏬 Todas as 4 Filiais</option>
+                  <option value="grande_vitoria">Grande Vitória</option>
+                  <option value="sao_jose">São José</option>
+                  <option value="novo_aleixo">Novo Aleixo</option>
+                  <option value="nova_cidade">Nova Cidade</option>
+                </select>
+              </label>
+              <label>
                 Mês
                 <select id="sales-month">
                   <option value="all">Todos os meses</option>
@@ -776,6 +786,7 @@
                   <thead>
                     <tr>
                       <th>Data / Hora</th>
+                      <th>Unidade</th>
                       <th>Endereço de Entrega</th>
                       <th>Itens do Pedido</th>
                       <th>Pagamento</th>
@@ -807,12 +818,6 @@
               <div class="settings-card">
                 <h2>Dados de Atendimento e Entrega</h2>
                 <form id="store-settings-form" onsubmit="handleStoreSettingsSubmit(event)">
-                  <label>
-                    WhatsApp Oficial da Loja (DDI + DDD + Número)
-                    <input id="cfg-whatsapp" type="text" placeholder="Ex.: 5592999999999" required />
-                    <small class="field-hint">Os pedidos dos clientes serão encaminhados para este número.</small>
-                  </label>
-
                   <div class="form-grid" style="margin-top: 0;">
                     <label>
                       Taxa Padrão de Entrega (R$)
@@ -1028,12 +1033,6 @@
                       <input type="file" id="settings-excel-import" accept=".xlsx,.xls" onchange="handleExcelFileInput(event)" hidden />
                     </label>
                   </div>
-
-                  <div class="excel-action-box">
-                    <strong>⚡ Conexão Direta (Gravação no Disco)</strong>
-                    <p>Vincule o arquivo <code>BANCO DE DADOS.xlsx</code> no computador para que alterações feitas no painel salvem automaticamente no disco.</p>
-                    <button class="secondary-button" type="button" onclick="connectLocalExcelFile()">Conectar Arquivo Local</button>
-                  </div>
                 </div>
               </div>
 
@@ -1181,6 +1180,6 @@
     <script src="xlsx.full.min.js"></script>
     <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>'); }</script>
     <!-- Script Principal como Módulo ES6 com Firebase -->
-    <script type="module" src="app.js?v=6.2"></script>
+    <script type="module" src="app.js?v=6.3"></script>
   </body>
 </html>
