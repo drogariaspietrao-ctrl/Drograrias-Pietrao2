@@ -356,12 +356,40 @@ function getLocalSales() {
 
 function saveLocalSales(sales) {
   try {
-    localStorage.setItem(SALES_CACHE_KEY, JSON.stringify(sales || []));
+    localStorage.setItem(SALES_CACHE_KEY, JSON.stringify(deduplicateOrders(sales || [])));
   } catch (e) {}
 }
 
+function deduplicateOrders(orderList) {
+  if (!Array.isArray(orderList)) return [];
+  const seenIds = new Set();
+  const seenSignatures = new Set();
+  const unique = [];
+
+  for (const o of orderList) {
+    if (!o) continue;
+    const id = String(o.id || '');
+    if (id && seenIds.has(id)) continue;
+
+    // Assinatura única para eliminar envios duplicados por duplo clique (mesmo endereço, total e minuto)
+    const itemsKey = (o.items || []).map(i => `${i.productId || i.name}:${i.qty}`).sort().join('|');
+    const timeKey = o.date ? new Date(o.date).toISOString().slice(0, 16) : '';
+    const sig = `${o.address || ''}__${o.total}__${timeKey}__${itemsKey}`;
+
+    if (seenSignatures.has(sig)) {
+      continue;
+    }
+
+    if (id) seenIds.add(id);
+    seenSignatures.add(sig);
+    unique.push(o);
+  }
+
+  return unique;
+}
+
 // Estado da Aplicação (Memória em Tempo Real - Zero LocalStorage para Produtos)
-let db = { products: [], sales: getLocalSales() || [...DEFAULT_SALES] };
+let db = { products: [], sales: deduplicateOrders(getLocalSales() || [...DEFAULT_SALES]) };
 let config = { ...DEFAULT_CONFIG };
 let cart = [];
 let currentCategory = 'Todos';
@@ -667,8 +695,8 @@ function initFirestoreListeners() {
     // Se o Firestore tiver pedidos, usa eles; se não, mantém o cache local / default
     if (orders.length > 0) {
       orders.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-      db.sales = orders;
-      saveLocalSales(orders);
+      db.sales = deduplicateOrders(orders);
+      saveLocalSales(db.sales);
     }
 
     if (isAdminLogged() && currentAdminTab === 'sales') {
@@ -1225,9 +1253,12 @@ window.clearSavedAddressForm = function() {
   if (alertEl) alertEl.hidden = true;
 };
 
+let isSubmittingOrder = false;
+
 window.handleCheckoutSubmit = async function(e) {
   e.preventDefault();
 
+  if (isSubmittingOrder) return;
   if (cart.length === 0) return;
 
   const stockErrors = [];
@@ -1250,129 +1281,144 @@ window.handleCheckoutSubmit = async function(e) {
     return;
   }
 
-  const street = $('#address-street').value.trim();
-  const number = $('#address-number').value.trim();
-  const district = $('#address-district').value.trim();
-  const reference = $('#address-reference').value.trim();
-  const payment = $('#payment').value;
-  const notes = $('#order-notes')?.value.trim() || '';
-
-  const addressObj = { street, number, district, reference };
-  const addressFull = `${street}, nº ${number} — ${district}${reference ? ` (${reference})` : ''}`;
-
-  if ($('#save-address-checkbox')?.checked) {
-    saveCustomerAddress(addressObj);
+  isSubmittingOrder = true;
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando Pedido...';
   }
 
-  let subtotal = 0;
-  const orderItems = cart.map(item => {
-    const prod = db.products.find(p => String(p.id) === String(item.id));
-    const bData = getProductBranchData(prod, currentBranch);
-    const unitPrice = (bData.sale && bData.sale < bData.price) ? bData.sale : bData.price;
-    subtotal += unitPrice * item.qty;
-
-    return {
-      productId: prod.id,
-      name: prod.name,
-      category: prod.category,
-      qty: item.qty,
-      price: unitPrice,
-      branchId: currentBranch,
-      branchName: getBranchName(currentBranch)
-    };
-  });
-
-  const freeThreshold = Number(config.freeShippingThreshold || DEFAULT_CONFIG.freeShippingThreshold);
-  const baseDelivery = Number(config.deliveryFee || DEFAULT_CONFIG.deliveryFee);
-  const isFreeShipping = subtotal >= freeThreshold;
-  const deliveryFeeCharged = isFreeShipping ? 0 : baseDelivery;
-  const finalTotal = subtotal + deliveryFeeCharged;
-  const branchName = getBranchName(currentBranch);
-  const branchWa = getBranchWhatsApp(currentBranch);
-
-  const orderRecord = {
-    id: Date.now(),
-    date: new Date().toISOString(),
-    branchId: currentBranch,
-    branchName: branchName,
-    items: orderItems,
-    subtotal: subtotal,
-    deliveryFee: deliveryFeeCharged,
-    isFreeShipping: isFreeShipping,
-    total: finalTotal,
-    payment: payment,
-    address: addressFull,
-    notes: notes,
-    status: 'Recebido'
-  };
-
-  // 1. Atualizar estoque da filial correspondente e salvar pedido no Firebase Firestore
   try {
-    for (const item of cart) {
-      const prod = db.products.find(p => String(p.id) === String(item.id));
-      if (prod) {
-        const bData = getProductBranchData(prod, currentBranch);
-        const newBranchStock = Math.max(0, bData.stock - item.qty);
-        const updatedBranches = {
-          ...(prod.branches || {}),
-          [currentBranch]: {
-            ...(prod.branches?.[currentBranch] || {}),
-            price: bData.price,
-            sale: bData.sale,
-            promo: bData.promo,
-            stock: newBranchStock
-          }
-        };
+    const street = $('#address-street').value.trim();
+    const number = $('#address-number').value.trim();
+    const district = $('#address-district').value.trim();
+    const reference = $('#address-reference').value.trim();
+    const payment = $('#payment').value;
+    const notes = $('#order-notes')?.value.trim() || '';
 
-        await updateDoc(doc(dbFirestore, "produtos", String(prod.id)), {
-          branches: updatedBranches,
-          stock: newBranchStock, // fallback de compatibilidade
-          updatedAt: new Date().toISOString()
-        });
-      }
+    const addressObj = { street, number, district, reference };
+    const addressFull = `${street}, nº ${number} — ${district}${reference ? ` (${reference})` : ''}`;
+
+    if ($('#save-address-checkbox')?.checked) {
+      saveCustomerAddress(addressObj);
     }
-    await setDoc(doc(dbFirestore, "pedidos", String(orderRecord.id)), orderRecord);
-    showToast(`☁️ Pedido registrado para a unidade ${branchName}!`);
-  } catch (err) {
-    console.error('[Firebase Firestore] Erro ao gravar pedido:', err);
+
+    let subtotal = 0;
+    const orderItems = cart.map(item => {
+      const prod = db.products.find(p => String(p.id) === String(item.id));
+      const bData = getProductBranchData(prod, currentBranch);
+      const unitPrice = (bData.sale && bData.sale < bData.price) ? bData.sale : bData.price;
+      subtotal += unitPrice * item.qty;
+
+      return {
+        productId: prod.id,
+        name: prod.name,
+        category: prod.category,
+        qty: item.qty,
+        price: unitPrice,
+        branchId: currentBranch,
+        branchName: getBranchName(currentBranch)
+      };
+    });
+
+    const freeThreshold = Number(config.freeShippingThreshold || DEFAULT_CONFIG.freeShippingThreshold);
+    const baseDelivery = Number(config.deliveryFee || DEFAULT_CONFIG.deliveryFee);
+    const isFreeShipping = subtotal >= freeThreshold;
+    const deliveryFeeCharged = isFreeShipping ? 0 : baseDelivery;
+    const finalTotal = subtotal + deliveryFeeCharged;
+    const branchName = getBranchName(currentBranch);
+    const branchWa = getBranchWhatsApp(currentBranch);
+
+    const orderRecord = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      branchId: currentBranch,
+      branchName: branchName,
+      items: orderItems,
+      subtotal: subtotal,
+      deliveryFee: deliveryFeeCharged,
+      isFreeShipping: isFreeShipping,
+      total: finalTotal,
+      payment: payment,
+      address: addressFull,
+      notes: notes,
+      status: 'Recebido'
+    };
+
+    // 1. Atualizar estoque da filial correspondente e salvar pedido no Firebase Firestore
+    try {
+      for (const item of cart) {
+        const prod = db.products.find(p => String(p.id) === String(item.id));
+        if (prod) {
+          const bData = getProductBranchData(prod, currentBranch);
+          const newBranchStock = Math.max(0, bData.stock - item.qty);
+          const updatedBranches = {
+            ...(prod.branches || {}),
+            [currentBranch]: {
+              ...(prod.branches?.[currentBranch] || {}),
+              price: bData.price,
+              sale: bData.sale,
+              promo: bData.promo,
+              stock: newBranchStock
+            }
+          };
+
+          await updateDoc(doc(dbFirestore, "produtos", String(prod.id)), {
+            branches: updatedBranches,
+            stock: newBranchStock, // fallback de compatibilidade
+            updatedAt: new Date().toISOString()
+          });
+        }
+      }
+      await setDoc(doc(dbFirestore, "pedidos", String(orderRecord.id)), orderRecord);
+      showToast(`☁️ Pedido registrado para a unidade ${branchName}!`);
+    } catch (err) {
+      console.error('[Firebase Firestore] Erro ao gravar pedido:', err);
+    }
+
+    db.sales = deduplicateOrders([orderRecord, ...db.sales]);
+    saveLocalSales(db.sales);
+
+    const cleanPhone = (branchWa || '').replace(/\D/g, '');
+    const itemLines = orderItems.map(i => `• ${i.qty}x ${i.name} — ${money(i.price * i.qty)}`);
+    
+    const whatsappMsg = [
+      `🏬 *NOVO PEDIDO - DROGARIAS PIETRÃO*`,
+      `---------------------------------`,
+      `📍 *Unidade:* ${branchName}`,
+      `🕒 *Data:* ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+      ``,
+      `📋 *ITENS DO PEDIDO*`,
+      itemLines.join('\n'),
+      ``,
+      `---------------------------------`,
+      `💵 *Subtotal:* ${money(subtotal)}`,
+      `🛵 *Taxa de Entrega:* ${isFreeShipping ? 'Grátis' : money(deliveryFeeCharged)}`,
+      `💰 *TOTAL:* *${money(finalTotal)}*`,
+      `💳 *Pagamento:* ${payment}`,
+      `---------------------------------`,
+      ``,
+      `📍 *ENDEREÇO DE ENTREGA*`,
+      `${addressFull}`,
+      notes ? `\n📝 *Observações:* ${notes}` : ``
+    ].filter(line => line !== null && line !== undefined).join('\n');
+
+    cart = [];
+    renderStore();
+    renderCart();
+    e.target.reset();
+    $('#checkout-modal')?.close();
+    closeCart();
+
+    const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(whatsappMsg)}`;
+    window.open(url, '_blank');
+  } finally {
+    isSubmittingOrder = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar pedido para o WhatsApp';
+    }
   }
-
-  db.sales.unshift(orderRecord);
-  saveLocalSales(db.sales);
-
-  const cleanPhone = (branchWa || '').replace(/\D/g, '');
-  const itemLines = orderItems.map(i => `• ${i.qty}x ${i.name} — ${money(i.price * i.qty)}`);
-  
-  const whatsappMsg = [
-    `🏬 *NOVO PEDIDO - DROGARIAS PIETRÃO*`,
-    `---------------------------------`,
-    `📍 *Unidade:* ${branchName}`,
-    `🕒 *Data:* ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-    ``,
-    `📋 *ITENS DO PEDIDO*`,
-    itemLines.join('\n'),
-    ``,
-    `---------------------------------`,
-    `💵 *Subtotal:* ${money(subtotal)}`,
-    `🛵 *Taxa de Entrega:* ${isFreeShipping ? 'Grátis' : money(deliveryFeeCharged)}`,
-    `💰 *TOTAL:* *${money(finalTotal)}*`,
-    `💳 *Pagamento:* ${payment}`,
-    `---------------------------------`,
-    ``,
-    `📍 *ENDEREÇO DE ENTREGA*`,
-    `${addressFull}`,
-    notes ? `\n📝 *Observações:* ${notes}` : ``
-  ].filter(line => line !== null && line !== undefined).join('\n');
-
-  cart = [];
-  renderStore();
-  renderCart();
-  e.target.reset();
-  $('#checkout-modal')?.close();
-  closeCart();
-
-  const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(whatsappMsg)}`;
-  window.open(url, '_blank');
 };
 
 window.openDirectWhatsApp = function() {
@@ -1950,7 +1996,10 @@ function renderAdminSales() {
   const catFilter = salesCatEl?.value || 'all';
   const prodFilter = salesProdEl?.value || 'all';
 
-  const orders = (db.sales || []).filter(s => {
+  const cleanSales = deduplicateOrders(db.sales || []);
+  db.sales = cleanSales;
+
+  const orders = cleanSales.filter(s => {
     if (branchFilter !== 'all' && s.branchId !== branchFilter) return false;
     if (monthFilter !== 'all' && !(s.date || '').startsWith(monthFilter)) return false;
     return true;
@@ -2042,13 +2091,16 @@ function renderAdminSales() {
               <option value="Cancelado" ${currentStatus === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
             </select>
           </td>
+          <td>
+            <button type="button" class="action-btn delete-btn" style="background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; border-radius:4px; padding:4px 8px; font-size:0.75rem; cursor:pointer; font-weight:600;" onclick="deleteOrder('${order.id}')" title="Excluir pedido">🗑️ Excluir</button>
+          </td>
         </tr>
       `;
     }).join('');
   } else {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="text-align: center; padding: 24px; color: var(--muted);">
+        <td colspan="9" style="text-align: center; padding: 24px; color: var(--muted);">
           Nenhum pedido encontrado para os filtros selecionados.
         </td>
       </tr>
@@ -2081,6 +2133,76 @@ window.updateOrderStatus = async function(orderId, newStatus) {
     showToast(`Status do pedido atualizado para "${newStatus}"!`);
   } catch (err) {
     console.error('Erro ao atualizar status do pedido no Firestore:', err);
+  }
+};
+
+window.deleteOrder = async function(orderId) {
+  if (!confirm('Deseja realmente excluir este pedido do histórico?')) return;
+  try {
+    await deleteDoc(doc(dbFirestore, "pedidos", String(orderId)));
+    db.sales = deduplicateOrders((db.sales || []).filter(s => String(s.id) !== String(orderId)));
+    saveLocalSales(db.sales);
+    renderAdminSales();
+    showToast('🗑️ Pedido excluído com sucesso!');
+  } catch (err) {
+    console.error('Erro ao excluir pedido:', err);
+    db.sales = deduplicateOrders((db.sales || []).filter(s => String(s.id) !== String(orderId)));
+    saveLocalSales(db.sales);
+    renderAdminSales();
+    showToast('🗑️ Pedido removido localmente!');
+  }
+};
+
+window.cleanDuplicateOrders = async function() {
+  const initialCount = (db.sales || []).length;
+  const cleaned = deduplicateOrders(db.sales || []);
+  const removedCount = initialCount - cleaned.length;
+
+  db.sales = cleaned;
+  saveLocalSales(db.sales);
+  renderAdminSales();
+
+  // Também limpa duplicados no Firestore se houver
+  try {
+    const seenSignatures = new Set();
+    const seenIds = new Set();
+    const snapshot = await getDocs(pedidosCol);
+    const toDelete = [];
+
+    snapshot.forEach(docSnap => {
+      const o = docSnap.data();
+      const id = docSnap.id;
+      if (seenIds.has(id)) {
+        toDelete.push(id);
+        return;
+      }
+      const itemsKey = (o.items || []).map(i => `${i.productId || i.name}:${i.qty}`).sort().join('|');
+      const timeKey = o.date ? new Date(o.date).toISOString().slice(0, 16) : '';
+      const sig = `${o.address || ''}__${o.total}__${timeKey}__${itemsKey}`;
+
+      if (seenSignatures.has(sig)) {
+        toDelete.push(id);
+      } else {
+        seenIds.add(id);
+        seenSignatures.add(sig);
+      }
+    });
+
+    for (const delId of toDelete) {
+      await deleteDoc(doc(dbFirestore, "pedidos", delId));
+    }
+
+    if (toDelete.length > 0 || removedCount > 0) {
+      showToast(`🧹 ${Math.max(toDelete.length, removedCount)} pedido(s) duplicado(s) removido(s) com sucesso!`);
+    } else {
+      showToast('✅ Nenhum pedido duplicado encontrado!');
+    }
+  } catch (err) {
+    if (removedCount > 0) {
+      showToast(`🧹 ${removedCount} pedido(s) duplicado(s) removido(s) do painel!`);
+    } else {
+      showToast('✅ Nenhum pedido duplicado encontrado.');
+    }
   }
 };
 
