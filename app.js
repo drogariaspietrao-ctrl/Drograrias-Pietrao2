@@ -459,8 +459,13 @@ function updateBranchUI() {
   Object.keys(DEFAULT_BRANCHES).forEach(bId => {
     const btn = $(`#branch-btn-${bId}`);
     const badge = $(`#badge-branch-${bId}`);
+    const modalName = $(`#branch-modal-name-${bId}`);
+    const modalAddr = $(`#branch-modal-addr-${bId}`);
+
     if (btn) btn.classList.toggle('active', bId === currentBranch);
     if (badge) badge.hidden = bId !== currentBranch;
+    if (modalName) modalName.textContent = getBranchName(bId);
+    if (modalAddr) modalAddr.textContent = `📍 ${getBranchAddress(bId)}`;
   });
 }
 
@@ -1961,24 +1966,34 @@ window.quickRestockPrompt = function(id) {
 // ABA 3: PEDIDOS & VENDAS
 function renderAdminSales() {
   const salesBranchEl = $('#sales-branch');
+  const salesYearEl = $('#sales-year');
   const salesMonthEl = $('#sales-month');
   const salesCatEl = $('#sales-category');
   const salesProdEl = $('#sales-product');
 
   const selectedBranch = salesBranchEl?.value || 'all';
+  const selectedYear = salesYearEl?.value || 'all';
   const selectedMonth = salesMonthEl?.value || 'all';
   const selectedCat = salesCatEl?.value || 'all';
   const selectedProd = salesProdEl?.value || 'all';
 
-  const months = [...new Set((db.sales || []).map(s => (s.date || '').slice(0, 7)).filter(Boolean))].sort().reverse();
-  const cats = config.categories || DEFAULT_CATEGORIES;
+  // Popula anos dinamicamente com base nas vendas
+  const currentYearStr = String(new Date().getFullYear());
+  const years = [...new Set((db.sales || []).map(s => (s.date || '').slice(0, 4)).filter(Boolean))];
+  if (!years.includes(currentYearStr)) years.push(currentYearStr);
+  years.sort().reverse();
 
-  if (salesMonthEl) {
-    salesMonthEl.innerHTML = '<option value="all">Todos os meses</option>' +
-      months.map(m => `<option value="${m}">${formatMonthLabel(m)}</option>`).join('');
-    salesMonthEl.value = months.includes(selectedMonth) ? selectedMonth : 'all';
+  if (salesYearEl) {
+    salesYearEl.innerHTML = '<option value="all">Todos os anos</option>' +
+      years.map(y => `<option value="${y}">${y}</option>`).join('');
+    salesYearEl.value = years.includes(selectedYear) ? selectedYear : 'all';
   }
 
+  if (salesMonthEl && selectedMonth) {
+    salesMonthEl.value = selectedMonth;
+  }
+
+  const cats = config.categories || DEFAULT_CATEGORIES;
   if (salesCatEl) {
     salesCatEl.innerHTML = '<option value="all">Todas as categorias</option>' +
       cats.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -1992,6 +2007,7 @@ function renderAdminSales() {
   }
 
   const branchFilter = salesBranchEl?.value || 'all';
+  const yearFilter = salesYearEl?.value || 'all';
   const monthFilter = salesMonthEl?.value || 'all';
   const catFilter = salesCatEl?.value || 'all';
   const prodFilter = salesProdEl?.value || 'all';
@@ -2001,11 +2017,15 @@ function renderAdminSales() {
 
   const orders = cleanSales.filter(s => {
     if (branchFilter !== 'all' && s.branchId !== branchFilter) return false;
-    if (monthFilter !== 'all' && !(s.date || '').startsWith(monthFilter)) return false;
+    if (yearFilter !== 'all' && !(s.date || '').startsWith(yearFilter)) return false;
+    if (monthFilter !== 'all') {
+      const orderMonth = (s.date || '').slice(5, 7);
+      if (orderMonth !== monthFilter) return false;
+    }
     return true;
   });
 
-  const productCounts = {};
+  const productStats = {};
   let totalRevenue = 0;
   let totalOrdersCount = 0;
   let totalUnitsCount = 0;
@@ -2017,7 +2037,12 @@ function renderAdminSales() {
       if (prodFilter !== 'all' && String(item.productId) !== prodFilter) return;
 
       orderHasRelevantItem = true;
-      productCounts[item.name] = (productCounts[item.name] || 0) + item.qty;
+      if (!productStats[item.name]) {
+        productStats[item.name] = { qty: 0, revenue: 0, category: item.category || 'Medicamentos' };
+      }
+      productStats[item.name].qty += item.qty;
+      productStats[item.name].revenue += (item.price * item.qty);
+
       totalRevenue += (item.price * item.qty);
       totalUnitsCount += item.qty;
     });
@@ -2030,28 +2055,68 @@ function renderAdminSales() {
   if ($('#sales-orders')) $('#sales-orders').textContent = totalOrdersCount;
   if ($('#sales-units')) $('#sales-units').textContent = `${totalUnitsCount} un.`;
 
-  const sortedProducts = Object.entries(productCounts)
-    .sort((a, b) => b[1] - a[1])
+  const sortedProducts = Object.entries(productStats)
+    .sort((a, b) => b[1].qty - a[1].qty)
     .slice(0, 5);
 
   const chartEl = $('#sales-chart');
   if (chartEl) {
     if (sortedProducts.length > 0) {
-      const maxQty = sortedProducts[0][1] || 1;
-      chartEl.innerHTML = sortedProducts.map(([name, qty]) => {
-        const percent = Math.min(100, Math.max(8, Math.round((qty / maxQty) * 100)));
+      const maxQty = sortedProducts[0][1].qty || 1;
+      const top5Units = sortedProducts.reduce((acc, [, data]) => acc + data.qty, 0);
+      const top5Revenue = sortedProducts.reduce((acc, [, data]) => acc + data.revenue, 0);
+      const leaderName = sortedProducts[0][0];
+
+      const summaryHtml = `
+        <div class="chart-summary-pills">
+          <div class="chart-summary-pill">
+            <span>🏆 Produto Campeão</span>
+            <strong title="${leaderName}">${leaderName}</strong>
+          </div>
+          <div class="chart-summary-pill">
+            <span>📦 Total Top 5</span>
+            <strong>${top5Units} unidades</strong>
+          </div>
+          <div class="chart-summary-pill">
+            <span>💰 Receita Top 5</span>
+            <strong style="color:#16a34a;">${money(top5Revenue)}</strong>
+          </div>
+        </div>
+      `;
+
+      const rowsHtml = sortedProducts.map(([name, data], idx) => {
+        const percent = Math.min(100, Math.max(10, Math.round((data.qty / maxQty) * 100)));
+        const rank = idx + 1;
+        const rankBadge = rank === 1 ? '<span class="rank-badge rank-1">🥇</span>'
+          : rank === 2 ? '<span class="rank-badge rank-2">🥈</span>'
+          : rank === 3 ? '<span class="rank-badge rank-3">🥉</span>'
+          : `<span class="rank-badge rank-other">${rank}º</span>`;
+
+        const shareOfTop5 = top5Units > 0 ? Math.round((data.qty / top5Units) * 100) : 0;
+
         return `
           <div class="chart-row">
-            <span class="chart-label" title="${name}">${name}</span>
-            <div class="chart-bar-wrap">
+            ${rankBadge}
+            <div class="chart-product-info">
+              <span class="chart-product-name" title="${name}">${name}</span>
+              <span class="chart-product-meta">
+                <span>📁 ${data.category}</span> • <span>${shareOfTop5}% do Top 5</span>
+              </span>
+            </div>
+            <div class="chart-bar-wrap" title="${percent}% do líder de vendas">
               <div class="chart-bar" style="width: ${percent}%;"></div>
             </div>
-            <strong class="chart-val">${qty} un.</strong>
+            <div class="chart-val-box">
+              <span class="chart-val-qty">${data.qty} un.</span>
+              <span class="chart-val-rev">${money(data.revenue)}</span>
+            </div>
           </div>
         `;
       }).join('');
+
+      chartEl.innerHTML = summaryHtml + rowsHtml;
     } else {
-      chartEl.innerHTML = '<p style="color: var(--muted); align-self: center; margin: auto; font-size: 0.82rem;">Não há vendas para os filtros selecionados.</p>';
+      chartEl.innerHTML = '<p style="color: var(--muted); align-self: center; margin: 28px auto; font-size: 0.85rem; text-align:center;">Não há vendas para os filtros selecionados.</p>';
     }
   }
 
@@ -2221,6 +2286,7 @@ function renderAdminSettings() {
   const branches = config.branches || DEFAULT_BRANCHES;
   Object.keys(DEFAULT_BRANCHES).forEach(bId => {
     const b = branches[bId] || DEFAULT_BRANCHES[bId];
+    if ($(`#cfg-branch-name-${bId}`)) $(`#cfg-branch-name-${bId}`).value = b.name || DEFAULT_BRANCHES[bId].name;
     if ($(`#cfg-branch-whatsapp-${bId}`)) $(`#cfg-branch-whatsapp-${bId}`).value = b.whatsapp || '';
     if ($(`#cfg-branch-phone-${bId}`)) $(`#cfg-branch-phone-${bId}`).value = b.phone || '';
     if ($(`#cfg-branch-address-${bId}`)) $(`#cfg-branch-address-${bId}`).value = b.address || '';
@@ -2249,7 +2315,7 @@ window.handleStoreSettingsSubmit = async function(e) {
   Object.keys(DEFAULT_BRANCHES).forEach(bId => {
     updatedBranches[bId] = {
       id: bId,
-      name: DEFAULT_BRANCHES[bId].name,
+      name: $(`#cfg-branch-name-${bId}`)?.value.trim() || DEFAULT_BRANCHES[bId].name,
       shortName: DEFAULT_BRANCHES[bId].shortName,
       whatsapp: $(`#cfg-branch-whatsapp-${bId}`)?.value.trim() || DEFAULT_BRANCHES[bId].whatsapp,
       phone: $(`#cfg-branch-phone-${bId}`)?.value.trim() || DEFAULT_BRANCHES[bId].phone,
@@ -2260,8 +2326,8 @@ window.handleStoreSettingsSubmit = async function(e) {
 
   try {
     await setDoc(configDocRef, config, { merge: true });
-    showToast('☁️ Configurações da loja e filiais salvas no Firebase!');
-    alert('✅ Sucesso! As configurações e os números de WhatsApp das 4 filiais foram salvos no Firebase.');
+    showToast('☁️ Endereços e configurações das filiais salvos no Firebase!');
+    alert('✅ Sucesso! Os endereços, contatos e configurações das 4 filiais foram salvos no Firebase.');
   } catch (err) {
     console.error('Erro ao salvar configurações no Firestore:', err);
     alert('Erro ao salvar no Firebase: ' + err.message);
@@ -3119,7 +3185,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#admin-category-filter')?.addEventListener('change', renderAdminCatalog);
   $('#admin-stock-filter')?.addEventListener('change', renderAdminCatalog);
 
-  ['sales-branch', 'sales-month', 'sales-category', 'sales-product'].forEach(id => {
+  ['sales-branch', 'sales-year', 'sales-month', 'sales-category', 'sales-product'].forEach(id => {
     $(`#${id}`)?.addEventListener('change', renderAdminSales);
   });
 
