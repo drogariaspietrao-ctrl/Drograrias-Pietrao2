@@ -477,37 +477,37 @@
       <div class="branch-grid">
         <button type="button" class="branch-card-btn" id="branch-btn-grande_vitoria" onclick="selectBranch('grande_vitoria')">
           <div class="branch-card-title">
-            <span>Grande Vitória</span>
+            <span id="branch-modal-name-grande_vitoria">Grande Vitória</span>
             <span class="branch-card-badge" id="badge-branch-grande_vitoria" hidden>Selecionada</span>
           </div>
-          <span class="branch-card-address">📍 Av. Grande Vitória — Manaus / AM</span>
+          <span class="branch-card-address" id="branch-modal-addr-grande_vitoria">📍 Av. Grande Vitória — Manaus / AM</span>
           <span class="branch-card-action">Comprar nesta unidade →</span>
         </button>
 
         <button type="button" class="branch-card-btn" id="branch-btn-sao_jose" onclick="selectBranch('sao_jose')">
           <div class="branch-card-title">
-            <span>São José</span>
+            <span id="branch-modal-name-sao_jose">São José</span>
             <span class="branch-card-badge" id="badge-branch-sao_jose" hidden>Selecionada</span>
           </div>
-          <span class="branch-card-address">📍 Av. Cosme Ferreira, São José — Manaus / AM</span>
+          <span class="branch-card-address" id="branch-modal-addr-sao_jose">📍 Av. Cosme Ferreira, São José — Manaus / AM</span>
           <span class="branch-card-action">Comprar nesta unidade →</span>
         </button>
 
         <button type="button" class="branch-card-btn" id="branch-btn-novo_aleixo" onclick="selectBranch('novo_aleixo')">
           <div class="branch-card-title">
-            <span>Novo Aleixo</span>
+            <span id="branch-modal-name-novo_aleixo">Novo Aleixo</span>
             <span class="branch-card-badge" id="badge-branch-novo_aleixo" hidden>Selecionada</span>
           </div>
-          <span class="branch-card-address">📍 Rua Penetração, Novo Aleixo — Manaus / AM</span>
+          <span class="branch-card-address" id="branch-modal-addr-novo_aleixo">📍 Rua Penetração, Novo Aleixo — Manaus / AM</span>
           <span class="branch-card-action">Comprar nesta unidade →</span>
         </button>
 
         <button type="button" class="branch-card-btn" id="branch-btn-nova_cidade" onclick="selectBranch('nova_cidade')">
           <div class="branch-card-title">
-            <span>Nova Cidade</span>
+            <span id="branch-modal-name-nova_cidade">Nova Cidade</span>
             <span class="branch-card-badge" id="badge-branch-nova_cidade" hidden>Selecionada</span>
           </div>
-          <span class="branch-card-address">📍 Av. Margarita, Nova Cidade — Manaus / AM</span>
+          <span class="branch-card-address" id="branch-modal-addr-nova_cidade">📍 Av. Margarita, Nova Cidade — Manaus / AM</span>
           <span class="branch-card-action">Comprar nesta unidade →</span>
         </button>
       </div>
@@ -725,9 +725,27 @@
                 </select>
               </label>
               <label>
+                Ano
+                <select id="sales-year">
+                  <option value="all">Todos os anos</option>
+                </select>
+              </label>
+              <label>
                 Mês
                 <select id="sales-month">
                   <option value="all">Todos os meses</option>
+                  <option value="01">01 - Janeiro</option>
+                  <option value="02">02 - Fevereiro</option>
+                  <option value="03">03 - Março</option>
+                  <option value="04">04 - Abril</option>
+                  <option value="05">05 - Maio</option>
+                  <option value="06">06 - Junho</option>
+                  <option value="07">07 - Julho</option>
+                  <option value="08">08 - Agosto</option>
+                  <option value="09">09 - Setembro</option>
+                  <option value="10">10 - Outubro</option>
+                  <option value="11">11 - Novembro</option>
+                  <option value="12">12 - Dezembro</option>
                 </select>
               </label>
               <label>
@@ -771,8 +789,12 @@
 
             <!-- Gráfico dos Mais Vendidos -->
             <div class="chart-card">
-              <h2>Produtos mais vendidos</h2>
-              <p>Quantidade de unidades comercializadas no período</p>
+              <div class="chart-card-header">
+                <div>
+                  <h2>📊 Ranking e Desempenho dos Mais Vendidos</h2>
+                  <p>Visualização gráfica comparativa de volume de vendas (unidades) e faturamento estimado por produto</p>
+                </div>
+              </div>
               <div id="sales-chart" class="sales-chart"></div>
             </div>
 
@@ -867,74 +889,98 @@
                     <small class="field-hint">Produtos com quantidade igual ou menor que este valor entram na lista de atenção.</small>
                   </label>
 
-                  <!-- Telefones e WhatsApp das 4 Filiais Físicas -->
-                  <div style="margin-top: 18px; border-top: 1px solid #e5e7eb; padding-top: 14px;">
-                    <h3 style="font-size: 0.95rem; margin-bottom: 4px; color: var(--ink);">🏬 WhatsApp e Contato das 4 Filiais Físicas</h3>
-                    <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px;">Os pedidos dos clientes serão direcionados automaticamente para o WhatsApp da unidade que o cliente estiver navegando.</p>
+                  <!-- Endereços, Telefones e WhatsApp das 4 Filiais Físicas -->
+                  <div style="margin-top: 18px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+                    <h3 style="font-size: 1rem; margin-bottom: 4px; color: var(--ink);">📍 Endereços e Dados das 4 Unidades Físicas (Farmácias)</h3>
+                    <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px;">Modifique aqui o endereço completo, nome e contatos de cada unidade. Os endereços são atualizados instantaneamente no modal de filiais da loja virtual.</p>
 
                     <div class="branches-settings-grid">
                       <div class="branch-setting-card">
                         <h3>📍 Grande Vitória</h3>
                         <label>
-                          WhatsApp (DDI + DDD + Número)
-                          <input id="cfg-branch-whatsapp-grande_vitoria" type="text" placeholder="Ex.: 5592999999991" required />
+                          Nome de Exibição
+                          <input id="cfg-branch-name-grande_vitoria" type="text" placeholder="Grande Vitória" required />
                         </label>
                         <label>
-                          Telefone / Contato
-                          <input id="cfg-branch-phone-grande_vitoria" type="text" placeholder="Ex.: (92) 3000-0001" />
+                          Endereço Completo da Unidade
+                          <input id="cfg-branch-address-grande_vitoria" type="text" placeholder="Ex.: Av. Grande Vitória, nº 140 — Manaus / AM" required />
                         </label>
-                        <label>
-                          Endereço / Referência
-                          <input id="cfg-branch-address-grande_vitoria" type="text" placeholder="Av. Grande Vitória" />
-                        </label>
+                        <div class="form-grid" style="margin: 0; grid-template-columns: 1fr 1fr;">
+                          <label>
+                            WhatsApp
+                            <input id="cfg-branch-whatsapp-grande_vitoria" type="text" placeholder="5592999999991" required />
+                          </label>
+                          <label>
+                            Telefone Fixo
+                            <input id="cfg-branch-phone-grande_vitoria" type="text" placeholder="(92) 3000-0001" />
+                          </label>
+                        </div>
                       </div>
 
                       <div class="branch-setting-card">
                         <h3>📍 São José</h3>
                         <label>
-                          WhatsApp (DDI + DDD + Número)
-                          <input id="cfg-branch-whatsapp-sao_jose" type="text" placeholder="Ex.: 5592999999992" required />
+                          Nome de Exibição
+                          <input id="cfg-branch-name-sao_jose" type="text" placeholder="São José" required />
                         </label>
                         <label>
-                          Telefone / Contato
-                          <input id="cfg-branch-phone-sao_jose" type="text" placeholder="Ex.: (92) 3000-0002" />
+                          Endereço Completo da Unidade
+                          <input id="cfg-branch-address-sao_jose" type="text" placeholder="Ex.: Av. Cosme Ferreira, nº 820, São José — Manaus / AM" required />
                         </label>
-                        <label>
-                          Endereço / Referência
-                          <input id="cfg-branch-address-sao_jose" type="text" placeholder="Av. Cosme Ferreira" />
-                        </label>
+                        <div class="form-grid" style="margin: 0; grid-template-columns: 1fr 1fr;">
+                          <label>
+                            WhatsApp
+                            <input id="cfg-branch-whatsapp-sao_jose" type="text" placeholder="5592999999992" required />
+                          </label>
+                          <label>
+                            Telefone Fixo
+                            <input id="cfg-branch-phone-sao_jose" type="text" placeholder="(92) 3000-0002" />
+                          </label>
+                        </div>
                       </div>
 
                       <div class="branch-setting-card">
                         <h3>📍 Novo Aleixo</h3>
                         <label>
-                          WhatsApp (DDI + DDD + Número)
-                          <input id="cfg-branch-whatsapp-novo_aleixo" type="text" placeholder="Ex.: 5592999999993" required />
+                          Nome de Exibição
+                          <input id="cfg-branch-name-novo_aleixo" type="text" placeholder="Novo Aleixo" required />
                         </label>
                         <label>
-                          Telefone / Contato
-                          <input id="cfg-branch-phone-novo_aleixo" type="text" placeholder="Ex.: (92) 3000-0003" />
+                          Endereço Completo da Unidade
+                          <input id="cfg-branch-address-novo_aleixo" type="text" placeholder="Ex.: Rua Penetração, nº 45, Novo Aleixo — Manaus / AM" required />
                         </label>
-                        <label>
-                          Endereço / Referência
-                          <input id="cfg-branch-address-novo_aleixo" type="text" placeholder="Rua Penetração" />
-                        </label>
+                        <div class="form-grid" style="margin: 0; grid-template-columns: 1fr 1fr;">
+                          <label>
+                            WhatsApp
+                            <input id="cfg-branch-whatsapp-novo_aleixo" type="text" placeholder="5592999999993" required />
+                          </label>
+                          <label>
+                            Telefone Fixo
+                            <input id="cfg-branch-phone-novo_aleixo" type="text" placeholder="(92) 3000-0003" />
+                          </label>
+                        </div>
                       </div>
 
                       <div class="branch-setting-card">
                         <h3>📍 Nova Cidade</h3>
                         <label>
-                          WhatsApp (DDI + DDD + Número)
-                          <input id="cfg-branch-whatsapp-nova_cidade" type="text" placeholder="Ex.: 5592999999994" required />
+                          Nome de Exibição
+                          <input id="cfg-branch-name-nova_cidade" type="text" placeholder="Nova Cidade" required />
                         </label>
                         <label>
-                          Telefone / Contato
-                          <input id="cfg-branch-phone-nova_cidade" type="text" placeholder="Ex.: (92) 3000-0004" />
+                          Endereço Completo da Unidade
+                          <input id="cfg-branch-address-nova_cidade" type="text" placeholder="Ex.: Av. Margarita, nº 1500, Nova Cidade — Manaus / AM" required />
                         </label>
-                        <label>
-                          Endereço / Referência
-                          <input id="cfg-branch-address-nova_cidade" type="text" placeholder="Av. Margarita" />
-                        </label>
+                        <div class="form-grid" style="margin: 0; grid-template-columns: 1fr 1fr;">
+                          <label>
+                            WhatsApp
+                            <input id="cfg-branch-whatsapp-nova_cidade" type="text" placeholder="5592999999994" required />
+                          </label>
+                          <label>
+                            Telefone Fixo
+                            <input id="cfg-branch-phone-nova_cidade" type="text" placeholder="(92) 3000-0004" />
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1182,6 +1228,6 @@
     <script src="xlsx.full.min.js"></script>
     <script>if (typeof XLSX === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>'); }</script>
     <!-- Script Principal como Módulo ES6 com Firebase -->
-    <script type="module" src="app.js?v=6.4"></script>
+    <script type="module" src="app.js?v=6.5"></script>
   </body>
 </html>
