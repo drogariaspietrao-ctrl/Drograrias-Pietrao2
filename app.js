@@ -269,8 +269,99 @@ const SEED_PRODUCTS = [
   }
 ];
 
+const SALES_CACHE_KEY = 'pietrao_sales_cache';
+
+const DEFAULT_SALES = [
+  {
+    id: 'PED-1001',
+    date: new Date(Date.now() - 3600000 * 2).toISOString(),
+    branchId: 'grande_vitoria',
+    branchName: 'Grande Vitória',
+    items: [
+      { productId: 1, name: 'Paracetamol 750mg c/ 20 Comprimidos', category: 'Medicamentos', price: 15.90, qty: 2 }
+    ],
+    subtotal: 31.80,
+    deliveryFee: 0,
+    isFreeShipping: true,
+    total: 31.80,
+    payment: 'Pix',
+    address: 'Rua Hibisco, 140 — Grande Vitória',
+    notes: 'Entregar na portaria',
+    status: 'Concluído'
+  },
+  {
+    id: 'PED-1002',
+    date: new Date(Date.now() - 3600000 * 8).toISOString(),
+    branchId: 'sao_jose',
+    branchName: 'São José',
+    items: [
+      { productId: 3, name: 'Vitamina C 1g Efervescente', category: 'Vitaminas e Suplementos', price: 32.90, qty: 1 },
+      { productId: 2, name: 'Dipirona Monoidratada 500mg/ml', category: 'Medicamentos', price: 8.90, qty: 2 }
+    ],
+    subtotal: 50.70,
+    deliveryFee: 0,
+    isFreeShipping: true,
+    total: 50.70,
+    payment: 'Cartão de Crédito na entrega',
+    address: 'Av. Cosme Ferreira, 820 — São José',
+    notes: '',
+    status: 'Saiu para entrega'
+  },
+  {
+    id: 'PED-1003',
+    date: new Date(Date.now() - 3600000 * 18).toISOString(),
+    branchId: 'novo_aleixo',
+    branchName: 'Novo Aleixo',
+    items: [
+      { productId: 4, name: 'Protetor Solar Facial FPS 50 Toque Seco', category: 'Dermocosméticos', price: 58.90, qty: 1 }
+    ],
+    subtotal: 58.90,
+    deliveryFee: 0,
+    isFreeShipping: true,
+    total: 58.90,
+    payment: 'Pix',
+    address: 'Rua Penetração II, 45 — Novo Aleixo',
+    notes: 'Tocar a campainha',
+    status: 'Em separação'
+  },
+  {
+    id: 'PED-1004',
+    date: new Date(Date.now() - 3600000 * 26).toISOString(),
+    branchId: 'nova_cidade',
+    branchName: 'Nova Cidade',
+    items: [
+      { productId: 7, name: 'Fralda Descartável Confort Premium Tam M', category: 'Mamãe e Bebê', price: 49.90, qty: 2 }
+    ],
+    subtotal: 99.80,
+    deliveryFee: 0,
+    isFreeShipping: true,
+    total: 99.80,
+    payment: 'Dinheiro',
+    address: 'Av. Margarita, 1500 — Nova Cidade',
+    notes: 'Troco para 100 reais',
+    status: 'Recebido'
+  }
+];
+
+function getLocalSales() {
+  try {
+    const raw = localStorage.getItem(SALES_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function saveLocalSales(sales) {
+  try {
+    localStorage.setItem(SALES_CACHE_KEY, JSON.stringify(sales || []));
+  } catch (e) {}
+}
+
 // Estado da Aplicação (Memória em Tempo Real - Zero LocalStorage para Produtos)
-let db = { products: [], sales: [] };
+let db = { products: [], sales: getLocalSales() || [...DEFAULT_SALES] };
 let config = { ...DEFAULT_CONFIG };
 let cart = [];
 let currentCategory = 'Todos';
@@ -573,9 +664,12 @@ function initFirestoreListeners() {
     snapshot.forEach(docSnap => {
       orders.push({ id: docSnap.id, ...docSnap.data() });
     });
-    // Ordena por data decrescente
-    orders.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-    db.sales = orders;
+    // Se o Firestore tiver pedidos, usa eles; se não, mantém o cache local / default
+    if (orders.length > 0) {
+      orders.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+      db.sales = orders;
+      saveLocalSales(orders);
+    }
 
     if (isAdminLogged() && currentAdminTab === 'sales') {
       renderAdminSales();
@@ -724,7 +818,6 @@ function createProductCard(p) {
       <div class="product-info">
         <span class="product-category">${p.category}</span>
         <div class="product-name" title="${p.name}">${p.name}</div>
-        ${p.description ? `<p style="font-size: 0.72rem; color: var(--muted); margin: 2px 0 6px 0; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.description}</p>` : ''}
 
         <div class="price-row">
           <strong class="price">${money(currentPrice)}</strong>
@@ -1243,6 +1336,9 @@ window.handleCheckoutSubmit = async function(e) {
   } catch (err) {
     console.error('[Firebase Firestore] Erro ao gravar pedido:', err);
   }
+
+  db.sales.unshift(orderRecord);
+  saveLocalSales(db.sales);
 
   const cleanPhone = (branchWa || '').replace(/\D/g, '');
   const itemLines = orderItems.map(i => `• ${i.qty}x ${i.name} — ${money(i.price * i.qty)}`);
@@ -1816,17 +1912,19 @@ window.quickRestockPrompt = function(id) {
   quickRestockBranchPrompt(id, targetBranch);
 };
 
-// ABA 3: PEDIDOS
+// ABA 3: PEDIDOS & VENDAS
 function renderAdminSales() {
+  const salesBranchEl = $('#sales-branch');
   const salesMonthEl = $('#sales-month');
   const salesCatEl = $('#sales-category');
   const salesProdEl = $('#sales-product');
 
+  const selectedBranch = salesBranchEl?.value || 'all';
   const selectedMonth = salesMonthEl?.value || 'all';
   const selectedCat = salesCatEl?.value || 'all';
   const selectedProd = salesProdEl?.value || 'all';
 
-  const months = [...new Set(db.sales.map(s => (s.date || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+  const months = [...new Set((db.sales || []).map(s => (s.date || '').slice(0, 7)).filter(Boolean))].sort().reverse();
   const cats = config.categories || DEFAULT_CATEGORIES;
 
   if (salesMonthEl) {
@@ -1847,11 +1945,13 @@ function renderAdminSales() {
     salesProdEl.value = selectedProd;
   }
 
+  const branchFilter = salesBranchEl?.value || 'all';
   const monthFilter = salesMonthEl?.value || 'all';
   const catFilter = salesCatEl?.value || 'all';
   const prodFilter = salesProdEl?.value || 'all';
 
-  const orders = db.sales.filter(s => {
+  const orders = (db.sales || []).filter(s => {
+    if (branchFilter !== 'all' && s.branchId !== branchFilter) return false;
     if (monthFilter !== 'all' && !(s.date || '').startsWith(monthFilter)) return false;
     return true;
   });
@@ -1859,28 +1959,33 @@ function renderAdminSales() {
   const productCounts = {};
   let totalRevenue = 0;
   let totalOrdersCount = 0;
+  let totalUnitsCount = 0;
 
   orders.forEach(order => {
-    totalOrdersCount++;
+    let orderHasRelevantItem = false;
     (order.items || []).forEach(item => {
       if (catFilter !== 'all' && item.category !== catFilter) return;
       if (prodFilter !== 'all' && String(item.productId) !== prodFilter) return;
 
+      orderHasRelevantItem = true;
       productCounts[item.name] = (productCounts[item.name] || 0) + item.qty;
       totalRevenue += (item.price * item.qty);
+      totalUnitsCount += item.qty;
     });
+    if (orderHasRelevantItem) {
+      totalOrdersCount++;
+    }
   });
 
-  $('#stat-sales-revenue').textContent = money(totalRevenue);
-  $('#stat-sales-orders').textContent = totalOrdersCount;
-  const avgTicket = totalOrdersCount > 0 ? (totalRevenue / totalOrdersCount) : 0;
-  $('#stat-sales-avg').textContent = money(avgTicket);
+  if ($('#sales-revenue')) $('#sales-revenue').textContent = money(totalRevenue);
+  if ($('#sales-orders')) $('#sales-orders').textContent = totalOrdersCount;
+  if ($('#sales-units')) $('#sales-units').textContent = `${totalUnitsCount} un.`;
 
   const sortedProducts = Object.entries(productCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
-  const chartEl = $('#top-products-chart');
+  const chartEl = $('#sales-chart');
   if (chartEl) {
     if (sortedProducts.length > 0) {
       const maxQty = sortedProducts[0][1] || 1;
@@ -1913,14 +2018,16 @@ function renderAdminSales() {
 
   if (relevantOrders.length > 0) {
     tbody.innerHTML = relevantOrders.map(order => {
-      const dateFormatted = order.date ? new Date(order.date).toLocaleDateString('pt-BR') : '—';
+      const dateFormatted = order.date ? `${new Date(order.date).toLocaleDateString('pt-BR')} ${new Date(order.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : '—';
       const itemsDesc = (order.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
       const currentStatus = order.status || 'Recebido';
       const deliveryText = order.isFreeShipping ? 'Grátis' : money(order.deliveryFee || 0);
+      const branchName = order.branchName || getBranchName(order.branchId) || 'Grande Vitória';
 
       return `
         <tr>
           <td>${dateFormatted}</td>
+          <td><span class="branch-status-badge" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe;">${branchName}</span></td>
           <td><small>${order.address || '—'}</small></td>
           <td><small>${itemsDesc}</small></td>
           <td>${order.payment || 'Pix'}</td>
@@ -1941,8 +2048,8 @@ function renderAdminSales() {
   } else {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align: center; padding: 24px; color: var(--muted);">
-          Nenhum pedido encontrado.
+        <td colspan="8" style="text-align: center; padding: 24px; color: var(--muted);">
+          Nenhum pedido encontrado para os filtros selecionados.
         </td>
       </tr>
     `;
@@ -1979,7 +2086,7 @@ window.updateOrderStatus = async function(orderId, newStatus) {
 
 // ABA 4: CONFIGURAÇÕES
 function renderAdminSettings() {
-  $('#cfg-whatsapp').value = config.whatsapp || DEFAULT_CONFIG.whatsapp;
+  if ($('#cfg-whatsapp')) $('#cfg-whatsapp').value = config.whatsapp || DEFAULT_CONFIG.whatsapp;
   $('#cfg-delivery-fee').value = config.deliveryFee !== undefined ? config.deliveryFee : DEFAULT_CONFIG.deliveryFee;
   $('#cfg-free-shipping').value = config.freeShippingThreshold !== undefined ? config.freeShippingThreshold : DEFAULT_CONFIG.freeShippingThreshold;
   $('#cfg-notice').value = config.storeNotice || DEFAULT_CONFIG.storeNotice;
@@ -2006,7 +2113,7 @@ function renderAdminSettings() {
 
 window.handleStoreSettingsSubmit = async function(e) {
   e.preventDefault();
-  config.whatsapp = $('#cfg-whatsapp').value.trim();
+  if ($('#cfg-whatsapp')) config.whatsapp = $('#cfg-whatsapp').value.trim();
   config.deliveryFee = Math.max(0, parseFloat($('#cfg-delivery-fee').value) || 0);
   config.freeShippingThreshold = Math.max(0, parseFloat($('#cfg-free-shipping').value) || 0);
   config.storeNotice = $('#cfg-notice').value.trim();
@@ -2581,6 +2688,16 @@ window.deleteProduct = async function(id) {
 // INTEGRAÇÃO COM PLANILHAS EXCEL (EXPORTAÇÃO & IMPORTAÇÃO EM MASSA)
 // ==========================================================================
 
+function findBranchIdByName(name) {
+  if (!name) return null;
+  const n = normalizeStr(name);
+  if (n.includes('vit') || n.includes('vitoria')) return 'grande_vitoria';
+  if (n.includes('jos') || n.includes('jose')) return 'sao_jose';
+  if (n.includes('aleixo')) return 'novo_aleixo';
+  if (n.includes('cidade')) return 'nova_cidade';
+  return null;
+}
+
 function buildWorkbookFromDatabase() {
   if (typeof XLSX === 'undefined') {
     throw new Error('Biblioteca SheetJS não carregada.');
@@ -2588,25 +2705,31 @@ function buildWorkbookFromDatabase() {
 
   const wb = XLSX.utils.book_new();
 
-  // 1. Aba Produtos
-  const prodHeaders = ["ID", "Nome", "Categoria", "Preco_Regular", "Preco_Promocional", "Estoque", "Promocao_Do_Dia", "Imagem_URL"];
-  const prodRows = (db.products || []).map(p => [
-    p.id,
-    p.name,
-    p.category,
-    p.price,
-    p.sale || "",
-    p.stock,
-    p.promo ? "SIM" : "NAO",
-    p.image || ""
-  ]);
+  // 1. Aba Produtos (Com identificação detalhada por Unidade da Farmácia)
+  const prodHeaders = ["ID", "Nome", "Categoria", "Unidade_Farmacia", "Preco_Regular", "Preco_Promocional", "Estoque", "Promocao_Do_Dia", "Imagem_URL"];
+  const prodRows = [];
+  (db.products || []).forEach(p => {
+    Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+      const bData = getProductBranchData(p, bId);
+      prodRows.push([
+        p.id,
+        p.name,
+        p.category,
+        DEFAULT_BRANCHES[bId].name,
+        bData.price,
+        bData.sale || "",
+        bData.stock,
+        bData.promo ? "SIM" : "NAO",
+        p.image || ""
+      ]);
+    });
+  });
   const wsProd = XLSX.utils.aoa_to_sheet([prodHeaders, ...prodRows]);
   XLSX.utils.book_append_sheet(wb, wsProd, "Produtos");
 
   // 2. Aba Configuracoes
   const cfgHeaders = ["Chave", "Valor", "Descricao"];
   const cfgRows = [
-    ["whatsapp", String(config.whatsapp || DEFAULT_CONFIG.whatsapp), "Número do WhatsApp oficial da farmácia com DDD"],
     ["storeNotice", String(config.storeNotice || DEFAULT_CONFIG.storeNotice), "Frase de destaque na barra do topo do site"],
     ["lowStockThreshold", String(config.lowStockThreshold || DEFAULT_CONFIG.lowStockThreshold), "Quantidade para alertar estoque baixo no painel"],
     ["deliveryFee", String(config.deliveryFee || DEFAULT_CONFIG.deliveryFee), "Taxa padrão de entrega em Reais"],
@@ -2626,13 +2749,14 @@ function buildWorkbookFromDatabase() {
   const wsCat = XLSX.utils.aoa_to_sheet([catHeaders, ...catRows]);
   XLSX.utils.book_append_sheet(wb, wsCat, "Categorias");
 
-  // 4. Aba Pedidos
-  const pedHeaders = ["ID_Pedido", "Data_Hora", "Itens", "Subtotal", "Taxa_Entrega", "Total", "Forma_Pagamento", "Endereco_Entrega", "Observacoes", "Status"];
+  // 4. Aba Pedidos (Com identificação da Unidade da Farmácia)
+  const pedHeaders = ["ID_Pedido", "Data_Hora", "Unidade_Farmacia", "Itens", "Subtotal", "Taxa_Entrega", "Total", "Forma_Pagamento", "Endereco_Entrega", "Observacoes", "Status"];
   const pedRows = (db.sales || []).map(s => {
     const itemsStr = (s.items || []).map(i => `${i.qty}x ${i.name}`).join(", ");
     return [
       s.id,
       s.date ? new Date(s.date).toLocaleString('pt-BR') : "",
+      s.branchName || getBranchName(s.branchId) || "Grande Vitória",
       itemsStr,
       s.subtotal || 0,
       s.deliveryFee || 0,
@@ -2680,12 +2804,18 @@ window.handleExcelFileInput = async function(e) {
         updateCloudSyncUI('syncing', 'Enviando produtos da planilha para o Firebase...');
         const batch = writeBatch(dbFirestore);
 
+        // Agrupa linhas por ID de produto para suportar dados de múltiplas filiais
+        const productMap = new Map();
+
         rawProducts.forEach((row, idx) => {
           const name = String(row.Nome || row.nome || row.Produto || row.produto || row.Name || row.name || '').trim();
           if (!name) return;
 
           const idRaw = row.ID || row.Id || row.id || (idx + 1);
           const id = Number(idRaw) || Date.now() + idx;
+          const branchName = String(row.Unidade_Farmacia || row.Unidade || row.Filial || '').trim();
+          const targetBranchId = findBranchIdByName(branchName);
+
           const category = String(row.Categoria || row.categoria || row.Category || row.category || 'Medicamentos').trim();
           const rawPrice = String(row.Preco_Regular || row.Preco || row.preco || row.price || row.Price || '0').replace(/[^\d.,]/g, '').replace(',', '.');
           const price = parseFloat(rawPrice) || 0;
@@ -2697,16 +2827,53 @@ window.handleExcelFileInput = async function(e) {
           const promo = ['sim', 's', 'true', '1', 'yes', 'si'].includes(promoVal);
           const image = String(row.Imagem_URL || row.Imagem || row.imagem || row.Image || row.image || '').trim() || FALLBACK_IMAGE;
 
-          const docRef = doc(dbFirestore, "produtos", String(id));
+          if (!productMap.has(id)) {
+            const existing = db.products.find(p => String(p.id) === String(id));
+            const baseBranches = existing?.branches ? JSON.parse(JSON.stringify(existing.branches)) : {
+              grande_vitoria: { price, sale, stock, promo },
+              sao_jose:       { price, sale, stock, promo },
+              novo_aleixo:    { price, sale, stock, promo },
+              nova_cidade:    { price, sale, stock, promo }
+            };
+
+            productMap.set(id, {
+              id,
+              name,
+              category,
+              price,
+              sale,
+              stock,
+              promo,
+              image,
+              branches: baseBranches
+            });
+          }
+
+          const pObj = productMap.get(id);
+          if (targetBranchId) {
+            pObj.branches[targetBranchId] = { price, sale, stock, promo };
+            if (targetBranchId === 'grande_vitoria') {
+              pObj.price = price;
+              pObj.sale = sale;
+              pObj.stock = stock;
+              pObj.promo = promo;
+            }
+          } else {
+            // Se nenhuma unidade específica foi informada, aplica em todas
+            Object.keys(DEFAULT_BRANCHES).forEach(bId => {
+              pObj.branches[bId] = { price, sale, stock, promo };
+            });
+            pObj.price = price;
+            pObj.sale = sale;
+            pObj.stock = stock;
+            pObj.promo = promo;
+          }
+        });
+
+        productMap.forEach(prod => {
+          const docRef = doc(dbFirestore, "produtos", String(prod.id));
           batch.set(docRef, {
-            id,
-            name,
-            category,
-            price,
-            sale,
-            stock,
-            promo,
-            image,
+            ...prod,
             updatedAt: new Date().toISOString()
           });
         });
@@ -2830,7 +2997,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#admin-category-filter')?.addEventListener('change', renderAdminCatalog);
   $('#admin-stock-filter')?.addEventListener('change', renderAdminCatalog);
 
-  ['sales-month', 'sales-category', 'sales-product'].forEach(id => {
+  ['sales-branch', 'sales-month', 'sales-category', 'sales-product'].forEach(id => {
     $(`#${id}`)?.addEventListener('change', renderAdminSales);
   });
 
